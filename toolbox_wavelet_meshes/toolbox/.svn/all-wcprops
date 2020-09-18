@@ -1,0 +1,191 @@
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox
+END
+compute_vertex_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_vertex_ring.m
+END
+keep_biggest.m
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/keep_biggest.m
+END
+progressbar.m
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/progressbar.m
+END
+plot_geometry_image.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/plot_geometry_image.m
+END
+clamp.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/clamp.m
+END
+griddata_arbitrary.m
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/griddata_arbitrary.m
+END
+keep_above.m
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/keep_above.m
+END
+crop.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/crop.m
+END
+read_off.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/read_off.m
+END
+compute_vertex_face_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_vertex_face_ring.m
+END
+mannequin.off
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/mannequin.off
+END
+compute_face_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_face_ring.m
+END
+venus.off
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/venus.off
+END
+load_image.m
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/load_image.m
+END
+compute_normal.m
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_normal.m
+END
+write_gim.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/write_gim.m
+END
+read_mesh.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/read_mesh.m
+END
+check_face_vertex.m
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/check_face_vertex.m
+END
+plot_mesh.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/plot_mesh.m
+END
+getoptions.m
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/getoptions.m
+END
+compute_edge_face_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_edge_face_ring.m
+END
+compute_mesh_weight.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_mesh_weight.m
+END
+triangulation2adjacency.m
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/triangulation2adjacency.m
+END
+read_gim.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/read_gim.m
+END
+perform_convolution.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/perform_convolution.m
+END
+compute_gaussian_filter.m
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/compute_gaussian_filter.m
+END
+load_gim.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/load_gim.m
+END
+perform_mesh_smoothing.m
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/perform_mesh_smoothing.m
+END
+rescale.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/rescale.m
+END
+perform_blurring.m
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/perform_blurring.m
+END
+imageplot.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/toolbox/imageplot.m
+END

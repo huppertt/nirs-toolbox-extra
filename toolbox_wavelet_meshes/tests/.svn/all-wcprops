@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests
+END
+test_subdivision_polyhedra.m
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_subdivision_polyhedra.m
+END
+test_sphere.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_sphere.m
+END
+test_subdivision_mesh.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_subdivision_mesh.m
+END
+test_wavelet_meshes.m
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_wavelet_meshes.m
+END
+test_create_gim.m
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_create_gim.m
+END
+test_subdivision_curve.m
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_subdivision_curve.m
+END
+test_semiregular_meshes.m
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/tests/test_semiregular_meshes.m
+END

@@ -1,0 +1,32 @@
+= MCX TODO list =
+
+== Short term projects ==
+
+*. support user defined phase functions [opened by FangQ, 2018/01/28]
+*. support anisotropic voxels [opened by FangQ, 2018/01/28]
+*. support non-uniform grid [opened by FangQ, 2018/01/28]
+*. support dual-grid MMC like ray-tracing [opened by FangQ, 2018/01/28]
+
+== Completed ==
+
+[done] *. fluorescent material support via pattern3d source [2009/09/30, FangQ]
+[done] *. support multi-byte medium [2017/01/01, FangQ] [mcx/issues/21]
+[done] *. extend the reflection model to support mis-match at internal boundaries [2010/07/29, FangQ]
+[done] *. support JSON input & output [2012/01/05, FangQ, port from MMC v0.9]
+[done] *. support object description file to produce volume at run-time [2010/07/29, FangQ, complete 2012/01/08]
+[done] *. results does not repeat with identical random number seed, need to check [2009/04/07, FangQ]
+[done] *. normalizing the solution with -U option. [2009/04/07, FangQ]
+[done] *. hardware/driver check and inform users for actions [2009/04/30, FangQ]
+[done] *. code cleaning [2009/09/24, FangQ]
+[done] *. compile on windows [2009/09/30, FangQ]
+[done] *. crate a GUI for MCX [2009/09/30, FangQ]
+[done] *. save photon history info at detector sites [2009/04/30, FangQ]
+[done] *. set up mailing lists [2009/09/30, FangQ]
+[done] *. OpenCL variant of MCX [2009/10/21, FangQ] [2010/02/10, FangQ]
+[dropped] *. Brook+ variant of MCX [2009/10/21, FangQ]
+[dropped] *. support ini based input file format (or perl script format) [2009/04/30, FangQ]
+[dropped] *. support NIFTI input & output [2009/04/30, FangQ]
+[done] *. support more complicated source forms [2009/09/30, FangQ], [2013/09/18, FangQ]
+[done] *. precise ray-tracing in a grid space [2012/01/11, FangQ]
+[done] *. multiple-GPU support [2009/09/30, FangQ]
+[dropped] study the round-off errors for the two RNGs [2009/04/30, FangQ]

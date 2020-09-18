@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes
+END
+perform_spherial_planar_sampling.m
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/perform_spherial_planar_sampling.m
+END
+publish_html.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/publish_html.m
+END
+perform_curve_subdivision.m
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/perform_curve_subdivision.m
+END
+perform_mesh_subdivision.m
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/perform_mesh_subdivision.m
+END
+compute_semiregular_gim.m
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/compute_semiregular_gim.m
+END
+perform_wavelet_mesh_transform.m
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/perform_wavelet_mesh_transform.m
+END
+loop.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/loop.m
+END
+content.m
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/content.m
+END
+compute_butterfly_neighbors.m
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/compute_butterfly_neighbors.m
+END
+plot_spherical_function.m
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/plot_spherical_function.m
+END
+copying
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/copying
+END
+copyright
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/copyright
+END
+load_spherical_function.m
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/load_spherical_function.m
+END
+readme.txt
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/readme.txt
+END
+compute_semiregular_sphere.m
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/compute_semiregular_sphere.m
+END
+compute_base_mesh.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/compute_base_mesh.m
+END
+perform_sgim_sampling.m
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_wavelet_meshes/perform_sgim_sampling.m
+END
