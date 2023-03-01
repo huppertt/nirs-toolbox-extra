@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Programmer Notes</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+  <!-- Local style sheet -->
+  <style type="text/css">
+    dl.funcList { margin-left: 5%;
+                   margin-right: 5%; }
+       .funcList > dt { font-family: monospace; }
+  </style>
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Developer Notes</h1>
+
+<p>The following are a collection of notes intended for developers and
+those writing their own applications based on the PMI Toolbox.  The
+intent is to explain the structure and some of the implementation
+decisions of the toolbox.  This is not meant to be exhaustive; when in
+doubt, check the source code.</p>
+
+<h2>Toolbox API</h2>
+
+<p> The PMI toolbox is built around the idea of having many small
+functions, each of which does one relatively simple task.  Each
+function should accept as broad a range of inputs as possible and
+should exit with a meaningful error message if it is unable to
+complete its given task.  Unless <strong>absolutely</strong>
+necessary, all functions should be able to accept as inputs arbitrary
+numbers and orderings of wavelengths and (where relevant) modulation
+frequencies, delay times, and gate widths.  By keeping the functions
+small and focused, we improve code re-use and make the functions
+easier to debug.  This also helps keep the number of function
+arguments to a minimum.</p>
+
+<p>Out of these small functions, larger and still more general
+functions are built.  For example, <mat>genBornMat()</mat>, the normal
+user routine for calculating the forward problem, does little more
+than look at the imaging geometry and the measurement and decide which
+low-level forward solver is most appropriate for the arguments passed.
+User applications (for example,
+<a href="http://www.nmr.mgh.harvard.edu/DOT/resources/homer.htm">HOMER</a>) 
+are, in turn, built on top of these high-level routines.
+</p>
+
+<h3>Calling Conventions</h3>
+
+<p>All the functions in the toolbox (well, almost all the functions)
+use a standard calling procedure; the order of the first three
+arguments is "<mat>SD</mat>, <mat>Medium</mat>, <mat>MeasList</mat>."
+It should always be possible to pass an empty list instead of a
+measurement list, in which case the full measurement list contained in
+the <mat>SD</mat> argument will be used instead.  Many functions also
+support a final optional <mat>Debug</mat> argument (which is not
+always documented).  This argument, if non-zero, prints extra
+debugging information to the users screen.</p>
+
+<p>For some functions, not all of the three standard arguments are
+relevant (for example, 
+<mat><a href="pmiplot2.xhtml">plotData()</a></mat> doesn't need a
+<mat>Medium</mat> structure to display the data correctly).  In these
+cases it is permissible to leave out the useless structure
+(hence the arguments to <mat>plotData()</mat> are <mat>SD</mat>,
+<mat>MeasList</mat>, <mat>data</mat>, etc.).
+</p>
+
+<h2>Directory Structure</h2>
+
+<p>Within the root directory of the PMI toolbox are a number of
+subdirectories.  Functions are placed in different subdirectories
+based on what the function does (e.g., all the visualization functions
+can all be found in the <em>Visualize</em> directory).  There are also
+directories for local extensions to the toolbox (<em>Local</em>) and
+for experimental and development code (<em>Development</em>) that is
+too unstable to keep in the regular <em>Local</em> directory.</p>
+
+<p class="noindent">The name and purpose of each top-level directory is:</p>
+<table>
+    <tr>
+	<th>Data</th>
+	<td>Functions for importing, exporting, and processing
+	experimental data.</td>
+    </tr>
+    <tr>
+	<th>Doc</th>
+	<td>Toolbox documentation files</td>
+    </tr>
+    <tr>
+	<th>Forward</th>
+	<td>Functions for solving the forward problem.</td>
+    </tr>
+    <tr>
+	<th>Noise</th>
+	<td>Functions for adding noise to simulated data</td>
+    </tr>
+    <tr>
+	<th>Recon</th>
+	<td>Functions for inverting the forward matrix and
+	reconstructing images.</td>
+    </tr>
+    <tr>
+	<th>Util</th>
+	<td>Generic, but useful, utility functions</td>
+    </tr>
+    <tr>
+	<th>Visualize</th>
+	<td>Data and volume visualization functions</td>
+    </tr>
+    <tr>
+	<th>Local</th>
+	<td>Functions developed locally and not general enough to include 
+	in the toolbox.</td>
+    </tr>
+    <tr>
+	<th>Development</th>
+	<td>Unstable or experimental functions, will be moved to Local after
+	they stabilize.</td>
+    </tr>
+</table>
+
+<h3>Directory structure within the Forward directory</h3>
+
+<p class="noindent">Within the <mat>Forward</mat> directory there are
+a number of subdirectories.  These subdirectories are:</p>
+<table>
+    <tr>
+	<th>Born</th>
+	<td>Functions that solve the forward problem in the Born
+	    approximation(s) and related functions</td>
+    </tr>
+    <tr>
+	<th>Born/FrequencyDomain</th>
+	<td>Frequency-domain imaging functions</td>
+    </tr>
+    <tr>
+	<th>Born/TimeDomain</th>
+	<td>Time-domain imaging functions</td>
+    </tr>
+    <tr>
+	<th>Born/Correlation</th>
+	<td>Correlation imaging functions (not implemented)</td>
+    </tr>
+    <tr>
+	<th>Born/Fluorescence</th>
+	<td>Fluorescence imaging functions (not implemented)</td>
+    </tr>
+    <tr>
+	<th>Sphere</th>
+	<td>Functions that solve analytical sphere perturbations</td>
+    </tr>
+    <tr>
+	<th>tMCimg</th>
+	<td>Functions to interface with the "tMCimg" Monte Carlo modeler</td>
+    </tr>
+    <tr>
+	<th>tFDimg</th>
+	<td>Functions to interface with the "tFDimg" finite difference
+	    modeler</td>
+    </tr>
+    <tr>
+	<th>TOAST</th>
+	<td>Function to interface with the "TOAST"
+	    FEM forward modeling package (not implemented)</td>
+    </tr>
+    <tr>
+	<th>*/MEX</th>
+	<td>Hold compiled (MEX) versions of the routines
+	    in the parent directory.</td>
+</tr>
+</table>
+
+<h2>Additional Functions</h2>
+
+<p class="noindent">
+There are a number of low-level routines in the toolbox that, while
+not things most users will want to call, may be of use to developers.
+These routines are:
+<dl class="funcList">
+    <dt>calcExtBnd</dt> 
+    <dd> Calculate extrapolated boundary length</dd>
+    <dt>repackSDAmp</dt> 
+    <dd> Repack vector coming out of SD Jacobian into the order used by 
+        <mat>SD.SrcAmp</mat> and <mat>SD.DetAmp</mat></dd>
+    <dt>getImageCharge</dt> 
+    <dd> Given source Z and extrapolated boundary, calculate the 
+        location of the next image charge</dd>
+    <dt>moveSrcSlab</dt> 
+    <dd> Move sources one scattering length into the medium</dd>
+    <dt>rowscale</dt> 
+    <dd> Rescale the rows of a matrix</dd>
+    <dt>DPDWBorn1NB, DPDWBorn1SB, DPDWBorn1ZB</dt> 
+    <dd> Low-level frequency-domain routines to calculate fluence </dd>
+    <dt>Hlm2ptNB, Hlm2ptSB, Hlm2ptZB</dt> 
+    <dd> More low-level frequency-domain routines to calculate fluence </dd>
+    <dt>Hlm3ptBorn1NB, Hlm3ptBorn1SB, Hlm3ptBorn1ZB</dt> 
+    <dd> Low-level frequency-domain routines to calculate Born 
+        forward matrix</dd>
+    <dt>repackBornFwdMat</dt> 
+    <dd> Repack matrix from dense matrix (flat storage as returned by the 
+        low-level routines) into a sparse block-packed matrix useful for 
+        imaging</dd>
+    <dt>HlmFullBornNB, HlmFullBornSB, HlmFullBornZB</dt> 
+    <dd> Low-level FullBorn forward problem solution</dd>
+    <dt>MLtoFB</dt> 
+    <dd> Calculate parameters needed to pack a FullBorn matrix based 
+        on the measurement list.</dd>
+    <dt>FD_GF, FD_GradGF</dt> 
+    <dd> Frequency-domain Green's function and its gradient</dd>
+    <dt>TD_2ptNB, TD_2ptSB, TD_2ptZB</dt> 
+    <dd> Low-level time-domain routines to calculate the fluence (matlab)</dd>
+    <dt>TD_3ptBorn1NB, TD_3ptBorn1SB, TD_3ptBorn1ZB</dt> 
+    <dd> Low-level time-domain routines to calculate the Born forward 
+        matrix (matlab) </dd>
+    <dt>TD_GF, TD_GradGF</dt> 
+    <dd> Time-domain Green's function and its gradient</dd>
+    <dt>mextd2ptNB, mextd2ptSB, mextd2ptZB</dt> 
+    <dd> Low-level time-domain routines to calculate the time-domain
+        fluence (compiled)</dd>
+    <dt>mextd3ptNB, mextd3ptSB, mextd3ptZB</dt> 
+    <dd> Low-level time-domain routines to calculate the Born forward 
+        matrix (compiled)</dd>
+    <dt>mexzbnd</dt> 
+    <dd> Calculate extrapolated boundary length (compiled)</dd>
+    <dt>SphHarm, bes_h1, bes_h1d, bes_j, bes_jd, bes_y</dt> 
+    <dd> Spherical harmonics and spherical bessel functions, used in the 
+        analytical solution of spherical perturbations</dd>  
+    <dt>genSphere, genBlock</dt> 
+    <dd> Turn a single <mat>Medium.Object</mat> structure at a single 
+        wavelength into a scattered fluence.</dd>
+    <dt>Pert_Grad, calcDelMuA, calcDelMuSp</dt> 
+    <dd> Calculate scattered fluence at multiple wavelengths given list 
+        of <mat>Object</mat> structures.</dd>
+    <dt>plotDimensions</dt> 
+    <dd> Generate aesthetically distributed subplots.</dd>
+</dl>
+Type "help funcname" from inside Matlab or see the source code for function
+documentation.</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

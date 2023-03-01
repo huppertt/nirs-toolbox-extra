@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+                      "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>PMI Toolbox Documentation</title>
+  <meta name="Description" content="Documentation for PMI Toolbox" />
+  <meta name="Generator"   content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+
+  <base href="http://www.nmr.mgh.harvard.edu/~jstott/PMI/Documentation/">
+
+  <style type="text/css">
+   /* Spread out the lists a bit */
+
+   li { margin-bottom: 0.5ex; }
+   ol { margin-bottom: 1.0ex; 
+        margin-top:    0.25ex; }
+   ul { margin-bottom: 1.0ex; 
+        margin-top:    0.25ex; }
+
+   /* Different style labeling at each level */
+
+   .level1 { list-style-type: decimal; }
+   .level2 { list-style-type: upper-roman; }
+   .level3 { list-style-type: lower-latin; }
+   .level4 { list-style-type: lower-roman; }
+
+   div#warnbox {
+     display: block;
+     border: thin solid black;
+     padding-left: 1ex;
+     padding-right: 1ex;
+     background: rgb(255,235,235);
+     font-size: x-small;
+   }
+  </style>
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+
+<h1 id="Title" class="centered">Photon Migration Imaging Toolbox</h1>
+
+<p>Diffuse optical tomography [DOT] is an emerging technique for non-invasive
+medical imaging.  Using optical fibers, light is directed into biological
+tissue.  As the light travels through the tissue it is scattered many
+times and exits as a diffuse photon fluence.  The exiting photons
+are collected and photo-detectors record the intensity.  The measured
+data can then be interpreted to provide information about the optical
+scattering and absorption of the region probed by the photons. If multiple
+overlapping measurements are available, tomographic reconstruction
+techniques can be used to produce three-dimensional images within the
+region of interest. In addition, by operating at multiple wavelengths
+within the tissue, the optical absorption coefficients can be related back
+to the local concentration of oxy- and deoxy-hemoglobin (or, equivalently,
+to the total hemoglobin concentration and oxygen saturation).
+These quantities, in turn, indicate local tissue metabolism.</p>
+
+<p id="Description">The Photon Migration Imaging (PMI) toolbox
+implements numerous algorithms for performing the forward and inverse
+calculations associated with diffusive optical imaging. The toolbox is
+implemented in <a href="http://www.mathworks.com/products/matlab/">Matlab</a> 
+and is (for the most part) platform independent.</p>
+
+<p> Copies of the PMI Toolbox can be downloaded from the <a
+href="http://www.nmr.mgh.harvard.edu/~jstott/PMI/">PMI Toolbox
+Website.</a> Installation instructions and sample code can be
+downloaded from the same place.  We also maintain a listserver for
+discussions between users of the PMI Toolbox and announcements relating 
+to the toolbox.  To subscribe to the PMI listserver, send mail to
+<a href="mailto:majordomo@nmr.mgh.harvard.edu">majordomo@nmr.mgh.harvard.edu</a>
+with the text <code>subscribe pmi email_address</code> in the body of
+the email where <code>email_address</code> is the email address you
+wish to have the listserve emails sent to.</p>
+
+<h1>Documentation</h1>
+
+<ul>
+  <li> PMI Toolbox <a href="pmi-gpl.xhtml"> License</a> (GPL)</li>
+  <li> Quick Start <a href="QuickStart.html"> Installation Guide</a></li>
+  <li>Toolbox Documentation and Function 
+	Reference&mdash;<a href="pmi-toc.xhtml">Table of Contents</a></li>
+  <li>Additional <a href="pmi-developer.xhtml"> Developer Notes</a></li>
+  <li>The <a href="PMIDataFormat.xhtml">PMI Data Format</a> Definition</li>
+</ul>
+
+<div id="warnbox" style="margin-top: 1em">
+<p class="noindent">Note: this documentation uses 
+<a href="http://www.w3.org/TR/xhtml11/">XHTML</a> and
+<a href="http://www.w3.org/Math">MathML</a> in places to specify
+various mathematical expressions.  While most modern browsers support 
+<a href="http://www.w3.org/Math">MathML</a>,
+they may need additional plug-ins or fonts in order to correctly
+render the equations.  In particular, both
+<a href="http://www.mozilla.org/projects/mathml">Mozilla</a> and
+<a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnwebteam/html/webteam10012002.asp">Microsoft
+Internet Explorer</a> will likely need additional files to correctly
+display mathematical expressions.
+</p>
+</div>
+
+</body>
+</html>

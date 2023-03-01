@@ -69,13 +69,16 @@ for iFile = 1:length(files)
         aux = aux_all(round(fsn(P,1)*fs):round(fsn(P,2)*fs),:);
         
         fname = sprintf([name '_part_' num2str(P) '.nirs']);
-        if exist('ml')
+        if exist('ml') && exist('CondNames')
+            save(fname,'d','t','s','aux','SD','ml','CondNames');
+        elseif exist('ml')
             save(fname,'d','t','s','aux','SD','ml');
         else
             save(fname,'d','t','s','aux','SD');
         end
     end
 end
+ 
  
     
 cd(wd);

@@ -16,9 +16,9 @@ function varargout = process_baseline_norm( varargin )
                         
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -46,7 +46,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Filter';
     sProcess.SubGroup    = 'Standardize';
     sProcess.Index       = 415;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/Tutorials/SourceEstimation#Z-score';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/SourceEstimation#Z-score';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'data', 'results', 'timefreq', 'matrix'};
     sProcess.OutputTypes = {'data', 'results', 'timefreq', 'matrix'};
@@ -76,11 +76,13 @@ function sProcess = DefineOptions(sProcess)
     sProcess.options.baseline.Value   = [];
     sProcess.options.baseline.Group   = 'input';
     % === Sensor types
-    sProcess.options.sensortypes.Comment    = 'Sensor types or names (empty=all): ';
-    sProcess.options.sensortypes.Type       = 'text';
-    sProcess.options.sensortypes.Value      = 'MEG, EEG';
-    sProcess.options.sensortypes.InputTypes = {'data'};
-    sProcess.options.sensortypes.Group      = 'input';
+    if ~strcmpi(sProcess.Category, 'Filter2')
+        sProcess.options.sensortypes.Comment    = 'Sensor types or names (empty=all): ';
+        sProcess.options.sensortypes.Type       = 'text';
+        sProcess.options.sensortypes.Value      = 'MEG, EEG';
+        sProcess.options.sensortypes.InputTypes = {'data'};
+        sProcess.options.sensortypes.Group      = 'input';
+    end
     % === Source absolute value
     sProcess.options.source_abs.Comment    = ['Normalize absolute values (or norm for unconstrained sources)<BR>' ...
                                               '<FONT color=#7F7F7F>Not recommended (see online tutorials for help)</FONT>'];
@@ -158,9 +160,13 @@ function OPTIONS = GetOptions(sProcess, sInput)
     if ~isempty(OPTIONS.Baseline) 
         OPTIONS.iBaseline = panel_time('GetTimeIndices', sInput.TimeVector, OPTIONS.Baseline);
         if isempty(OPTIONS.iBaseline)
-            bst_report('Error', sProcess, [], 'Invalid baseline definition.');
+            bst_report('Error', sProcess, sInput, 'Invalid baseline definition.');
             OPTIONS = [];
             return;
+        elseif (length(OPTIONS.iBaseline) < 3)
+            bst_report('Warning', sProcess, sInput, ['The baseline time window you selected contains only ' num2str(length(OPTIONS.iBaseline)) ' sample(s).' 10 ...
+                'This is probably an error: check the baseline definition or the input file type ' ...
+                '(eg. you cannot use this process to normalize PSD files because they do not have a time dimension.)']);
         end
     % Get all file
     else
@@ -200,7 +206,6 @@ function sInputB = Run(sProcess, sInputA, sInputB) %#ok<DEFNU>
         sInputB = [];
         return;
     end
-
     % Compute zscore
     sInputB.A = Compute(sInputB.A, sInputA.A(:,OPTIONS.iBaseline,:), OPTIONS.Method);
     % If there is a normalization: change data types
@@ -224,8 +229,8 @@ function sInputB = Run(sProcess, sInputA, sInputB) %#ok<DEFNU>
     end
     % Add comment tag
     sInputB.CommentTag = OPTIONS.Method;
-    % Do not keep the Std field in the output
-    if isfield(sInputB, 'Std') && ~isempty(sInputB.Std)
+    % Do not keep the Std field in the output except for simple Baseline substraction
+    if isfield(sInputB, 'Std') && ~isempty(sInputB.Std) && ~strcmpi(OPTIONS.Method, 'bl')
         sInputB.Std = [];
     end
 end

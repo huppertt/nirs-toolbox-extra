@@ -19,5 +19,5 @@ AlAr = 3.14159 * (a+c) * (1+3*h/(10+sqrt(4-3*h))) * 1.2/2;
 
 
 %[HC IzNz AlAr]
-f = (HC-headSize.HC)^2 + (IzNz-headSize.IzNz)^2 + (AlAr-headSize.AlAr)^2;
+f = (HC-headSize.HC)^2 + (IzNz-headSize.IzNz)^2 + (AlAr-headSize.LPARPA)^2;
 

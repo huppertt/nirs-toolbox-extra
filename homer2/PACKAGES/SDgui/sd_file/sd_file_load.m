@@ -1,42 +1,35 @@
-function [filedata err]=sd_file_load(filename,handles)
+function [filedata, err] = sd_file_load(filename, handles)
 
-    filedata=[];
-    err = 0;
-    SDo = [];
-    h=sd_file_panel_GetErrMsgHandle(handles);
-    p = sd_file_panel_GetPos(handles);
-    if(~isempty(h))
-        delete(h);
-        h=[];
-        sd_file_panel_SetErrMsgHandle(handles,h);
-    end
+filedata=[];
+err = 0;
+if isempty(handles)
+    return;
+end
 
-    
-    newpos = [p(1)-20 p(2)-70 300 55];
-    
-    if(isempty(filename))
-        h = uicontrol('style','text','units','pixels','position',newpos,'string','Error: file does not exist.');
-        set(h,'units','normalized');
-        sd_file_panel_SetErrMsgHandle(handles,h);
-        err=1;
-        return;
-    end
+[~, fname, ext] = fileparts(filename);
 
-    try
-        filedata=load(filename,'-mat');
-        SDo=filedata.SD;
-    catch
-        h = uicontrol('style','text','units','pixels','position',newpos, 'string','Error: can''t open file not in .mat format.');
-        set(h,'units','normalized');
-        sd_file_panel_SetErrMsgHandle(handles,h);
-        err=2;
-        return;
-    end 
+if exist(filename,'file')==7
+    err=1;
+    SDgui_disp_msg(handles, sprintf('ERROR: %s is a folder. Please choose a file.', [fname,ext]), err);
+    return;
+end
 
-    if(isempty(SDo))
-        h = uicontrol('style','text','units','pixels','position',newpos,'string','Error: Can''t find SD data in file...');
-        set(h,'units','normalized');
-        sd_file_panel_SetErrMsgHandle(handles,h);
-        err=3;
-        return;
-    end
+if isempty(filename) || exist(filename,'file')==0
+    err=2;
+    SDgui_disp_msg(handles, sprintf('ERROR: file %s does not exist.', [fname,ext]), err);
+    return;
+end
+
+try
+    filedata = load(filename,'-mat');
+catch
+    err=3;
+    SDgui_disp_msg(handles, sprintf('ERROR: File %s is not in .mat format.', [fname,ext]), err);
+    return;
+end
+
+if ~isfield(filedata,'SD')
+    err=4;
+    SDgui_disp_msg(handles, sprintf('ERROR: SD data doesn''t exist or is corrupt in %s.', [fname,ext]), err);
+    return;
+end

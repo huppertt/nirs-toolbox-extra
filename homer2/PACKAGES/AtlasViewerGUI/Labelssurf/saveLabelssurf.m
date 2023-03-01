@@ -1,17 +1,10 @@
-function saveLabelssurf(labelssurf, dirname, mode)
+function saveLabelssurf(labelssurf, mode)
 
 if isempty(labelssurf) | isempty(labelssurf.mesh.vertices)
     return;
 end
 
-if ~exist('dirname','var') | isempty(dirname)
-    dirname = [labelssurf.pathname, '/anatomical/'];
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/anatomical/'];    
-end
+dirname = [labelssurf.pathname, '/anatomical/'];
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end

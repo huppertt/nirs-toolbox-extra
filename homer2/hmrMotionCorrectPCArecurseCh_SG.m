@@ -1,7 +1,23 @@
-function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurseCh_SG( dod, t, SD, tIncMan, nSV, maxIter, FrameSize_sec)
+function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurseCh_SG( dod, t, SD, tIncMan, nSV, maxIter, FrameSize_sec, turnon)
 % This function first finds baseline shifts and corrects them with tPCA_Ch
 % and then corrects the remaining spikes with Savitzky-Golay smoothing.
-% Sahar, Oct 2017
+% Sahar Jahani, Oct 2017
+% added turn on/off option Meryem, Nov 2017
+
+
+if exist('turnon')
+   if turnon==0
+       dN = dod;
+       tInc = tIncMan;
+       svs = [];
+       tInc0 = [tIncMan];      
+   return;
+   end
+end
+
+
+
+
 %% tPCA by channel
 fs = abs(1/(t(1)-t(2)));
 [tIncCh, tInc] = hmrtInc_baselineshift_Ch(dod, t);

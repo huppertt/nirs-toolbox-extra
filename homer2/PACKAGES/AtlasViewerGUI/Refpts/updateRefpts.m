@@ -2,7 +2,7 @@ function [refpts, pos] = updateRefpts(refpts, headsurf, labels, hAxes)
 
 pos=[];
 pos0 = headsurf.currentPt;
-if size(pos0,1)<length(labels)
+if size(pos0,1)<length(labels)    
     return;
 end
 
@@ -20,34 +20,116 @@ else
     axes(hAxes);
     hold on;
 end
+
 for ii=1:length(labels)
+    
+    % Search for the reference point label being selected in the existing 
+    % list 
     labelfound=false;
     for jj=1:length(refpts.labels)
         if strcmpi(labels{ii}, refpts.labels{jj})
             labelfound=true;
-            refpts.pos(jj,:) = pos(ii,:);
-            refpts.handles.selected(jj) = markSelectedPt(refpts.handles.selected(jj), pos(ii,:), headsurf.orientation, hAxes);
+            break;
         end
     end
-    if ~labelfound        
-        refpts.pos(end+1,:) = pos(ii,:);
-        refpts.labels{end+1} = labels{ii};
-        if isempty(refpts.handles.selected)
-            refpts.handles.selected(1) = -1;
-            refpts.handles.selected(1) = markSelectedPt(refpts.handles.selected(1), pos(ii,:), headsurf.orientation, hAxes);
-        else
-            refpts.handles.selected(end+1) = -1;
-            refpts.handles.selected(end) = markSelectedPt(refpts.handles.selected(end), pos(ii,:), headsurf.orientation, hAxes);
+        
+    % Search for the reference point position being selected in the existing
+    % list 
+    posfound=false;
+    for kk=1:size(refpts.pos,1)
+        % if all(pos(ii,:) == refpts.pos(kk,:))
+        if dist3(pos(ii,:), refpts.pos(kk,:))<1
+            posfound=true;
+            break;
         end
     end
+    
+    % Search for the reference point handle being selected in the existing 
+    % list 
+    handlefound=false;
+    idx=[];
+    if labelfound
+        idx = jj;
+    elseif posfound
+        idx = kk;
+    end
+    if ~isempty(idx)
+        if ishandle(refpts.handles.selected(idx))
+            handlefound=true;
+        end
+    end
+    
+    % Decide which reference point to add, delete or edit based on their
+    % existence in the current refpts list
+    refpts = editSelectedPt(refpts, labels{ii}, pos(ii,:), labelfound, posfound, handlefound, jj, kk, headsurf);
+
 end
 
+updateSelectBttns(refpts);
 
 
 
 
 % -------------------------------------------------------------------------
-function hp = markSelectedPt(hp, p, orientation, hAxes)
+function refpts = editSelectedPt(refpts, label, pos, labelfound, posfound, handlefound, jj, kk, headsurf)
+
+if labelfound & posfound & handlefound
+    % if label and position areassociated with the same point, delete point
+    if jj==kk
+        refpts.pos(jj,:) = [];
+        refpts.labels(jj) = [];
+        if ishandle(refpts.handles.selected(jj))
+            delete(refpts.handles.selected(jj))
+        end
+        refpts.handles.selected(jj) = [];
+    else
+        % Point with selcted label is reassigned position and point
+        % handle of point with selected position
+        if ishandle(refpts.handles.selected(jj))
+            delete(refpts.handles.selected(jj))
+        end
+        refpts.handles.selected(jj) = refpts.handles.selected(kk);
+        refpts.pos(jj,:) = refpts.pos(kk,:);
+        
+        % Delete ref point from refpts list with selected position
+        refpts.labels(kk) = [];
+        refpts.pos(kk,:) = [];
+        refpts.handles.selected(kk) = [];
+    end
+elseif ~labelfound & posfound & handlefound
+    refpts.handles.selected(end+1) = refpts.handles.selected(kk);
+    refpts.pos(end+1,:) = refpts.pos(kk,:);
+    refpts.labels{end+1} = label;
+    
+    % Delete ref point from refpts list with selected position
+    refpts.labels(kk) = [];
+    refpts.pos(kk,:) = [];
+    refpts.handles.selected(kk) = [];
+elseif labelfound & ~posfound & handlefound
+    % change it's position to the new one selected
+    refpts.pos(jj,:) = pos;
+    refpts.handles.selected(jj) = markSelectedPt(refpts.handles.selected(jj), pos, headsurf.orientation);
+elseif ~labelfound & ~posfound
+    % If neither label nor position exist in the reference point list, then create new entry
+    refpts.pos(end+1,:) = pos;
+    refpts.labels{end+1} = label;
+    refpts.handles.selected(end+1) = markSelectedPt([], pos, headsurf.orientation);
+elseif labelfound & posfound & ~handlefound
+    % If label and position exist but not handle, then create new handle for existing entry
+    if jj==kk
+        refpts.handles.selected(jj) = markSelectedPt([], pos, headsurf.orientation);
+    end
+elseif labelfound & ~posfound & ~handlefound
+    % change it's position to the new one selected
+    refpts.pos(jj,:) = pos;
+    refpts.handles.selected(jj) = markSelectedPt(refpts.handles.selected(jj), pos, headsurf.orientation);
+end
+
+
+
+
+% -------------------------------------------------------------------------
+function hp = markSelectedPt(hp, pos_new, orientation)
 
 % Display function needs to know how to order axes so left-right sides 
 % appear correctly
@@ -56,16 +138,12 @@ if leftRightFlipped(orientation)
 else
     axes_order=[1 2 3];
 end
-p = [p(axes_order(1)), p(axes_order(2)), p(axes_order(3))];
+p = [pos_new(axes_order(1)), pos_new(axes_order(2)), pos_new(axes_order(3))];
 
-if hp==0
-    hp=-1;
-end
 if ishandles(hp)
-    delete(hp);
-    hp = -1;
-end
-if ishandles(hAxes)
+    set(hp(1), 'xdata',p(1), 'ydata',p(2), 'zdata',p(3));
+else
     hp = plot3(p(1), p(2), p(3), '.m','markersize',30);
 end
+
 

@@ -38,24 +38,12 @@ end
 
 
 % Check if there's group acquisition data to load
-group = [];
-if exist([dirname, 'groupResults.mat'],'file')
-    load([dirname, 'groupResults.mat'], '-mat');
-elseif exist([dirname, '../', 'groupResults.mat'],'file')
-    load([dirname, '../', 'groupResults.mat'], '-mat');
-end
+[~,~, group] = findSubjDirs();
 if ~isempty(group)
-    if imgrecon.iSubj==0
-        imgrecon.subjData = group;
-        if isempty(imgrecon.subjData.procInput.SD)
-            imgrecon.subjData.procInput.SD = imgrecon.subjData.subjs(1).runs(1).procInput.SD;
-        end
-    else
-        imgrecon.subjData = group.subjs(imgrecon.iSubj);
-        if isempty(imgrecon.subjData.procInput.SD)
-            imgrecon.subjData.procInput.SD = imgrecon.subjData.runs(1).procInput.SD;
-        end
-    end
+    imgrecon.subjData.SD = getSD(group);
+    imgrecon.subjData.name = group.name;
+    imgrecon.subjData.procResult = group.procResult;
+    imgrecon.subjData.subjs = group.subjs;
     set(imgrecon.handles.menuItemImageReconGUI, 'enable', 'on');
 end
 

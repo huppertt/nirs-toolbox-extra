@@ -12,10 +12,6 @@ function write_surf(fname, vertex_coords, faces)
 % The General Hospital Corporation (Boston, MA). 
 % All rights reserved.
 %
-
-if ~exist('surftype','var')
-    surftype='fs';
-end
 faces = faces-1;
 
 TRIANGLE_FILE_MAGIC_NUMBER =  16777214 ;

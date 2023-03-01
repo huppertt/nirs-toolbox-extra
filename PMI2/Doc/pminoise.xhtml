@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Adding Synthetic Noise</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Adding Synthetic Noise</h1>
+
+<p id="Description">When modeling system performance or testing
+algorithms, it is important to add noise to the simulated "data" to
+accurately model system performance.  The PMI toolbox includes
+routines for adding both Gaussian-distributed noise (e.g., electronic
+amplifier noise) and Poisson-distributed noise (e.g., detector shot
+noise) to simulated "data".</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="addElecNoise.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	Phi = addElecNoise(SD, MeasList, Phi0, SNR);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to <mat>Phi0</mat></td>
+</tr>
+<tr>
+    <td class="varname">Phi0</td>
+    <td>Original noise-free data</td>
+</tr>
+<tr>
+    <td class="varname">SNR</td>
+    <td>average signal-to-noise ratio (linear, not dB)</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">Phi</td>
+    <td><mat>Phi0</mat> with added Gaussian noise</td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="addShotNoise.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	Phi = addShotNoise(SD, MeasList, Phi0, gain, bwidth);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to <mat>Phi0</mat></td>
+</tr>
+<tr>
+    <td class="varname">Phi0</td>
+    <td>Original noise-free data</td>
+</tr>
+<tr>
+    <td class="varname">gain</td>
+    <td>Model detector gain</td>
+</tr>
+<tr>
+    <td class="varname">bwdith</td>
+    <td>Model detector bandwidth (Hz)</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">Phi</td>
+    <td><mat>Phi0</mat> with added Poisson noise</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>Gaussian noise is sampled from a distribution</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi>&phi;</mi>
+	<mo>noise</mo>
+    </msub>
+    <mo>=</mo>
+    <mi>N</mi>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mn>0</mn>
+	<msub>
+	    <mi>&sigma;</mi>
+	    <mo>SNR</mo>
+	</msub>
+    </mfenced>
+</math>
+<p class="noindent">
+where
+<math xmlns="&mathml;">
+    <mi>N</mi>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mi>&mu;</mi>
+	<mi>&sigma;</mi>
+    </mfenced>
+</math>
+is a Gaussian distributed random number with mean value
+<math xmlns="&mathml;"><mi>&mu;</mi></math>
+and standard deviation
+<math xmlns="&mathml;"><mi>&sigma;</mi></math>.
+In this case,
+<math xmlns="&mathml;">
+    <msub>
+	<mi>&sigma;</mi>
+	<mi>SNR</mi>
+    </msub>
+</math> is selected such that the RMS signal to noise ratio is equal to 
+the user-requested SNR.
+</p>
+
+<p>Shot noise is sampled from a Poisson distribution.  Before
+generating the random numbers, however, the measured fluence must be
+converted into the number (count) of photos received at the detector</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi>N</mi>
+	<mo>&gamma;</mo>
+    </msub>
+    <mo>=</mo>
+    <mfrac>
+	<mi>B</mi>
+	<mi>G</mi>
+    </mfrac>
+    <mo>&InvisibleTimes;</mo>
+    <mfrac>
+	<mrow>
+	    <mi>h</mi>
+	    <mo>&InvisibleTimes;</mo>
+	    <mi>c</mi>
+	</mrow>
+	<mi>&lambda;</mi>
+    </mfrac>
+    <mo>&InvisibleTimes;</mo>
+    <mfenced open="|" close="|">
+	<msub>
+	    <mi>&phi;</mi>
+	    <mn>0</mn>
+	</msub>
+    </mfenced>
+</math>    
+<p class="noindent">
+where
+<math xmlns="&mathml;"><mi>h</mi></math> is Plank's constant,
+<math xmlns="&mathml;"><mi>c</mi></math> is the speed of light,
+<math xmlns="&mathml;"><mi>&lambda;</mi></math> is the wavelength of the 
+light, <math xmlns="&mathml;"><mi>G</mi></math> is the electronic gain of 
+the detector, and <math xmlns="&mathml;"><mi>B</mi></math> is the bandwidth 
+of the detector.  Given the number of detected photons, the shot noise is
+</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi>&phi;</mi>
+	<mo>noise</mo>
+    </msub>
+    <mo>=</mo>
+    <mfenced>
+	<mrow>
+	    <mfrac>
+		<mi>G</mi>
+		<mi>B</mi>
+	    </mfrac>
+	    <mo>&InvisibleTimes;</mo>
+	    <mfrac>
+		<mi>&lambda;</mi>
+		<mrow>
+		    <mi>h</mi>
+		    <mo>&InvisibleTimes;</mo>
+		    <mi>c</mi>
+		</mrow>
+	    </mfrac>
+	</mrow>
+    </mfenced>
+    <mo>&InvisibleTimes;</mo>
+    <msub>
+	<mi>N</mi>
+	<mo>p</mo>
+    </msub>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<msub>
+	    <mi>N</mi>
+	    <mo>&gamma;</mo>
+	</msub>
+    </mfenced>
+    <mo>-</mo>
+    <msub>
+	<mi>&phi;</mi>
+	<mn>0</mn>
+    </msub>
+</math>
+<p class="noindent">where
+<math xmlns="&mathml;">
+    <msub>
+	<mi>N</mi>
+	<mo>p</mo>
+    </msub>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mi>&nu;</mi>
+    </mfenced>
+</math>
+is a Poisson random process with mean value
+<math xmlns="&mathml;"><mi>&nu;</mi></math>.
+For complex-valued
+<math xmlns="&mathml;"><mi>&phi;</mi></math>,
+independent random numbers with mean
+<math xmlns="&mathml;">
+    <msub>
+	<mi>N</mi>
+	<mi>&gamma;</mi>
+    </msub>
+    <mo>/</mo>
+    <msqrt><mn>2</mn></msqrt>
+</math>
+are added to both the real and the imaginary components.
+
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

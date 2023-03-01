@@ -1,31 +1,4 @@
 function varargout = EasyNIRS(varargin)
-% EasyNIRS M-file for EasyNIRS.fig
-%      EasyNIRS, by itself, creates a new EasyNIRS or raises the existing
-%      singleton*.
-%
-%      H = EasyNIRS returns the handle to a new EasyNIRS or the handle to
-%      the existing singleton*.
-%
-%      EasyNIRS('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in EasyNIRS.M with the given input arguments.
-%
-%      EasyNIRS('Property','Value',...) creates a new EasyNIRS or raises
-%      the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before EasyNIRS_OpeningFunction gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to EasyNIRS_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help EasyNIRS
-
-% Last Modified by GUIDE v2.5 10-Dec-2016 19:58:45
-
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -42,7 +15,6 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
 
 
 
@@ -69,24 +41,15 @@ files = GetNIRSDataSet(handles);
 % Display window name which includes version # and data set path. Do this 
 % regardless of whether it's an empty gui because the user pressed cancel.
 % We want them to see the gui and version no matter what.
-V = EasyNIRS_version();
-if str2num(V{2})==0
-    set(handles.EasyNIRS,'name', sprintf('Homer2_UI  (v%s) - %s',[V{1}],cd) )
-else
-    set(handles.EasyNIRS,'name', sprintf('Homer2_UI  (v%s) - %s',[V{1} '.' V{2}],cd) )
-end
+EasyNIRS_version(hObject);
 
 if isempty(files)
     return;
 end
 hmr.files = files;
 
-
-
-
 % If data set has no errors enable window gui objects
 EasyNIRS_EnableDisableGUI(handles,'on');
-
 
 % grab some handles that are needed
 hmr.handles.axesSDG = handles.axesSDG;
@@ -119,8 +82,9 @@ hmr.plotCondition = 0;
 hmr.plotStim = 0;
 hmr.plotAux = 0;
 hmr.plotRange = [-2 2];
+hmr.plottRange = [0 500]; 
 hmr.flagPlotRange = 0;
-
+hmr.flagPlottRange = 0;
 % Initialize homer plot lists
 hmr.plotLst = [];
 hmr.plotConcLst = [];
@@ -145,7 +109,7 @@ hmr.color = [ ...
              0.8  0.8  0.8 ...
             ];
 
-hmr.linestyle = {'-','--',':'};
+hmr.linestyle = {'-','-.',':'};
 
 % load NIRS files to group
 warning('off', 'MATLAB:load:variableNotFound');
@@ -177,6 +141,9 @@ hmr.stim.LegendHdl = -1;
 EasyNIRS_plotAxesSDG();
 EasyNIRS_DisplayData();
 PlotProbe_Init(hObject);
+
+% Set GUI size relative to screen size
+positionGUI(hObject);
 
 
 
@@ -1989,6 +1956,26 @@ else
     EasyNIRS_DisplayData();
 end
 
+% --- Executes on button press in checkbox16.
+function checkbox16_Callback(hObject, eventdata, handles)
+global hmr
+hmr.flagPlottRange = get(hObject,'value');
+EasyNIRS_DisplayData();
+
+
+
+
+function edit10_Callback(hObject, eventdata, handles)
+global hmr
+foo = str2num(get(hObject,'string'));
+if length(foo)~=2
+    set(hObject,'string',sprintf('%d %d',hmr.plottRange(1),hmr.plottRange(2)));
+else
+    hmr.plottRange = foo;
+    EasyNIRS_DisplayData();
+end
+
+
 
 % --------------------------------------------------------------------
 function menuSaveGroupResults_Callback(hObject, eventdata, handles)
@@ -2018,3 +2005,16 @@ function menuSegmentNIRSFile_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 hmrNirsFileSegment();
+
+
+% --- Executes during object creation, after setting all properties.
+function edit10_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

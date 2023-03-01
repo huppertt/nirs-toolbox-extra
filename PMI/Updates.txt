@@ -1,0 +1,386 @@
+8/16/01
+
+-------------
+genMeasData.m
+-------------
+Rytov was correct to handle RF data correctly.
+Using delta_D/D instead of -delta_musp/musp.
+
+----------------------------------
+Hlm3ptBorn1ZB.m  Hlm3ptBorn1slab.m
+----------------------------------
+Gscat_musp_z had a small mistake in the image.
+
+----------
+genRecon.m
+----------
+Fixed a minus sign for reconstructing delta_musp
+
+7/13/01
+
+-------------
+genMeasData.m
+-------------
+Changed the scattering perturbation for Born and Rytov to be delMu_sp / Mu_sp_o.  Also corrected a minus sign error for the scattering perturbation.
+
+
+
+5/24/01
+
+-----------
+genFwdMat.m
+-----------
+The number of coupling coefficients was being counted multiple times when reconstructing musp and mua.  This was fixed.
+
+
+5/18/2001
+
+----------
+genRecon.m
+----------
+Changed reconstruction of delta_musp to be -delta_musp / musp_o rather than delta_D / Do.
+
+
+
+5/10/2001
+
+----------------------------------
+Hlm3ptBorn1ZB.m  Hlm3ptBorn1slab.m
+----------------------------------
+The scattered wave from the musp perturbation had the wrong sign.
+
+
+4/27/2001
+
+----------------
+GetExtinctions.m
+----------------
+Maria Angela updated the extinction coefficients for hb and HbO
+
+
+
+4/19/2001
+
+-------------
+genMeasList.m
+-------------
+SNR was fixed to find the correspondence between a given MeasList
+and pmi.data.MeasList
+
+-----------
+LoadFrame.m
+-----------
+Before loading corrected data make sure corrected data exists.
+
+------------------
+FitBackGroundCal.m
+------------------
+Modified to return the least squares value correctly.
+
+-------------------
+FitBackGroundCal1.m
+-------------------
+Fixed a number of small errors for handling multi-wavelength data
+and sub-sets of sources and detectors.
+
+
+
+4/13/2001
+
+----------
+genRecon.m
+----------
+Fixed a matrix dimension problem for handle multi-wavelength scattering perturbation.
+
+-------------
+genMeasData.m
+-------------
+Modified ExactSphere to properly parse result for DC mixed with RF.
+
+
+
+2/25/2001
+
+----------
+genRecon.m
+----------
+No need to scale delta_D as the matrix is already scaled.
+Scaling fixed for multi-wavelength data.
+
+
+
+02/07/2001
+
+-------------------------------------------
+genFwdMat.m genMeasData.m
+DPDWBorn1NB.m DPDWBorn1ZB.m DPDWBorn1slab.m
+HlmFullBorn_NB.m, HlmFullBorn_ZB.m
+HlmFullBorn_slab.m
+-------------------------------------------
+Added forward model method type 'ExtBornN'.  This does an iterative extended Born approximation.
+DON'T FORGET THAT 'BornN' AND 'ExtBornN' DON'T NECESSARILY CONVERGE IF THE PERTURBATION IS TOO LARGE.
+
+------------- 
+genMeasData.m 
+------------- 
+Added Object Type 'Image'.  This allows you to specify an arbitrary
+mua and musp for every voxel in the Object sub-fields of 'Mu_a'
+and 'Mu_sp'.  At the moment there is no check to make sure that the
+mua and musp specification is consistent with the voxel grid specified
+in the model.  A check should be added by defining the voxel grid in the Object
+and comparing that against the Model in the forward calculation.
+
+-----------------------------------------------------
+HlmFullBorn_NB.m, HlmFullBorn_ZB.m HlmFullBorn_slab.m
+-----------------------------------------------------
+Removed 1/3 factor from the matrix.
+
+----------
+rowscale.m
+----------
+Removed the 3rd dimension, as this was screwing up our sparse matrix calculation.
+
+-----------
+showimage.m
+-----------
+Shows images of mua and musp.
+
+
+================================================================
+================================================================
+================================================================
+02/02/2001
+
+Congratulations to Ang for fixing the scattering problem.  It turns out that
+the DPDW wavenumber k used for the exact solution inside the sphere was calculated
+based on the photon diffusion coefficient D outside the sphere.  This was fixed to be
+based on D inside the sphere.  Also, the calculation of the perturbation matrix for
+delta_D had an arbitrary factor of 1/3 that was removed.  We now observe that 20 iterations of
+Born for a sphere in an infinite medium agrees perfectly with the Exact solution.  Yeah!
+
+We have added the Extended Born Method.  Thanks to Eric Miller.
+The implementation does not yet exploit the sparse matrx format which
+will make calculations significantly faster when we are dealing with 
+1000's of voxels.  The relevant parameters are:
+  pmiModel.Method.Type = 'ExtBorn'
+  pmiModel.Method.ExtBorn_Radius = radius of influence from neighboring voxels in cm
+
+NOTE THAT EXTENDED BORN AND FULL BORN DO NOT PRESENTLY WORK FOR DELTA_D.  Any
+ideas on how to make this work?
+
+The code should now support measurement lists with multiple frequencies.
+
+
+-----------
+genFwdMat.m
+-----------
+Added Extended Born method.
+
+-------------
+genMeasData.m
+-------------
+Added Extended Born method.
+The exact sphere calculation had a major error.  Basically, the calculation of k inside the sphere
+used D from outside the sphere.  This was fixed.
+
+-------------------------------------------
+DPDWBorn1NB.m DPDWBorn1ZB.m DPDWBorn1slab.m
+-------------------------------------------
+Added Extended Born method
+
+-------------------------------------------------
+Hlm3ptBorn1NB.m Hlm3ptBorn1ZB.m Hlm3ptBorn1slab.m
+-------------------------------------------------
+Removed the 1/3 factor from the calculation of the perturbation matrix for delta_D.  I don't recall
+why this 1/3 appeared originally, but it shouldn't be there.
+
+----------------------------------------------------
+HlmFullBorn_NB.m HlmFullBorn_ZB.m HlmFullBorn_slab.m
+----------------------------------------------------
+Added extended born with radius of influence which is specified by 
+   pmiModel.Method.ExtBorn_Radius
+NOTE THAT EXTENDED BORN AND FULL BORN PRESENTLY DO NOT WORK FOR DELTA_D.
+
+
+11/30/2000
+
+----------
+genRecon.m
+----------
+Fixed ds.Recon.Musp to show image of delta_musp rather than delta_D / D_o.
+
+
+11/8/2000
+
+-----------
+genFwdMat.m
+-----------
+Fixed nData to properly handle multiple modulation frequencies.
+
+----------------------
+Complex_Log_PhiByPhi.m
+----------------------
+Fixed this routine to properly handle data sets with multiple 
+modulation frequencies.
+
+
+================================================================
+================================================================
+================================================================
+11/7/2000
+
+The major update is inclusion of the analytic solution 
+for a spherical inhomogeneity in a homogeneous 
+medium.
+
+I have added scattering perturbation for 1st order Born 
+for the infinite medium case.  It has not yet been added 
+for semi-infinite and slab geometries.
+
+The Nth order Born and Full Born does include 
+absorption and scattering for infinite, semi-infinte, and 
+slab geometries.  Self-voxel contribution is included for 
+absorption but not scattering.  I cannot convince myself 
+yet that scattering has a self-voxel contribution.  Also 
+of concern, the Born solution for absorption agrees with 
+the analytic solution, but not for the case of scattering.  
+This requires further investigation.
+
+-------------
+genMeasData.m
+-------------
+Added Exact Sphere solution for infinite media.  This relies on
+ExactSphere.m, SphHarm.m, bes_h1.m, bes_h1d.m, bes_j.m, bes_jd.m,
+bes_y.m .   These functions have been added to the toolbox.
+
+---------------------------------------------
+DPDWBorn1NB.m  DPDWBorn1ZB.m  DPDWBorn1slab.m
+---------------------------------------------
+The matrix A was scaled by v/D specific for mua perturbations.  This was moved to a lower level because of the potential for scattering perturbations which are not scaled by v/D.
+
+---------------
+Hlm3ptBorn1NB.m  
+---------------
+Added v/D scaling for mua perturbation.
+Added scattering perturbation.
+
+----------------------------------
+Hlm3ptBorn1ZB.m  Hlm3ptBorn1slab.m
+----------------------------------
+Added v/D scaling for mua perturbation.
+HAVE NOT YET added SCATTERING perturbation.
+
+------------------------------------------------------
+HlmFullBorn_NB.m  HlmFullBorn_ZB.m  HlmFullBorn_slab.m
+------------------------------------------------------
+Scale mua perturbation by v/D.
+Deal with self-voxel contribution for absorption perturbation.
+Not yet dealing with self-voxel for scattering perturbation since I am not convinced that it exists.
+
+
+
+================================================================
+================================================================
+================================================================
+9/1/2000
+
+genFwdMat.m
+-----------
+Added Model.Method.Type 'FullBorn' and 'BornN'
+and cleaned up some of the S & D amplitude calculations.
+
+genMeasData.m
+-------------
+Having some trouble with re-initializing the P sub-structure.  This is probably still not the desired fix.
+
+Added Model.Method.Type 'FullBorn' and 'BornN'.  For 'BornN' it is necessary to specify 'Model.Method.Born_Order'
+
+genNoise.m
+----------
+Having some trouble with re-initializing the P sub-structure.  This is probably still not the desired fix.
+
+genRecon.m
+----------
+Added a pmi.Recon.Whiten flag so that the user can specify whether to whiten the matrix (=1) or not (=0).  It does not make sense to whiten the Rytov approximation (at the moment) or Maximum Likelihood.
+
+We have removed PhiScat from the Model.P structure.  PhiScat is now calculated in genRecon when needed.
+
+We have removed the whitened variables (Aw, PhiTotalNw, PhiIncw, etc.) from the Model.P structure.  These are now calculated within genRecon when needed.
+
+Fixed up flags for TSVD a little.  Flags added to pmi.Recon are
+      pmi.Recon.TSVD_FullSVS - sometimes the full SVS does not converge
+			     and thus setting this to 0 causes only the
+			     necessary (truncation level) elements of the 
+			     SVS to be calculated.  This approach can be 
+			     slower but has a better chance of converging
+			     in those rare instances.  Also, setting this
+			     to FALSE (=0) has the disadvantage of requiring
+			     additional calls to SVDS if the truncation level
+			     is increased.  The default is 1.
+      pmi.Recon.TSVD_Lsq - Determines whether to calculate the SVD of
+			 A'A (the least squares solution =1) or A (=0).
+			 The default is 0.
+      pmi.Recon.TSVD_CalcSVD - if true (=1) then recalculate the SVD otherwise
+			     use the previously calculated SVD.  No default,
+			     this variable must be set by the user.
+
+We call fattsvd with the options.  fattsvdls has been removed from the package as it is redundant with fattsvd.
+
+
+DPDWBorn1NB.m
+-------------
+Moved calculation of coupling coefficient matrix to genFwdMat.m
+
+Added Model.Method.Type 'BornN' and 'FullBorn'.
+
+
+DPDWBorn1ZB.m
+-------------
+Moved calculation of coupling coefficient matrix to genFwdMat.m
+
+Added Model.Method.Type 'BornN' and 'FullBorn'.
+
+
+DPDWBorn1slab.m
+-------------
+Moved calculation of coupling coefficient matrix to genFwdMat.m
+
+Added Model.Method.Type 'BornN' and 'FullBorn'.
+
+
+Hlm3ptBorn1slab.m
+-----------------
+Fixed a small error in the use of multiple images.
+
+
+fattsvd.m
+---------
+Removed fattsvdls.m and changed fattsvd.m to deal with options such as 
+least squares.
+
+
+GetExtinctions.m
+----------------
+Added extinction coefficients for lipid and aa3.
+
+
+showimage.m
+-----------
+Made minor changes to the titles of the images and calculation of the mXn 
+format of the images. 
+
+
+HlmFullBorn_slab.m, HlmFullBorn_ZB.m, HlmFullBorn_NB.m
+------------------------------------------------------
+Initial version.  Calculates the perturbation matrix for the Nth 
+Born Approximation.
+
+
+MPE.m
+-----
+Initial revision
+
+
+Pert_Grad.m
+-----------
+Initial version.

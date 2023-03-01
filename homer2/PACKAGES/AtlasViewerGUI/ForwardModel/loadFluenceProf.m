@@ -1,6 +1,7 @@
-function fluenceProf = loadFluenceProf(filenm, varargin)
+function [fluenceProf, readonly] = loadFluenceProf(filenm, varargin)
 
 fluenceProf = [];
+readonly = false;
 
 % Load fluence profile from file
 fields = varargin;
@@ -24,6 +25,12 @@ else
     eval(cmd);
 end
 
+% Support for loading DRM-protected fluence profile
+if isfield(fluenceProf0, 'intensities') && drmIsEncoded(fluenceProf0.intensities)
+    [path, ~, ~] = fileparts(filenm);
+    fluenceProf0.intensities = drmDecode(fluenceProf0.intensities, path);
+    readonly = true;
+end
 
 % Make sure the loaded profile follows current format
 fluenceProf = initFluenceProf();

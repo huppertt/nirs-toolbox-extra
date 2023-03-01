@@ -1,41 +1,50 @@
-function [fs2viewer, status] = fs2pialsurf(fs2viewer, dirname)
+function [pialsurf, fs2viewer, status] = fs2pialsurf(fs2viewer)
+
+pialsurf = initPialsurf();
 
 status = 1;
 
-if ~exist('dirname','var')
-    dirname='./';
-elseif dirname(end)~='/' && dirname(end)~='\'
-    dirname(end+1)='/';
-end
+dirname = fs2viewer.mripaths.surfaces;
 
 noder=[];
 nodel=[];
 elemr=[];
 eleml=[];
-if (~exist([dirname 'surf/rh.pial_resampled'],'file') || ...
-    ~exist([dirname 'surf/lh.pial_resampled'],'file')) && ...
-   (exist([dirname 'surf/rh.pial'],'file') && ...
-    exist([dirname 'surf/lh.pial'],'file'))
-    
-    h = waitbar(0,'Downsampling brain surface. This may take a few minutes...');
-    [nodeorigr,elemorigr] = read_surf([dirname 'surf/rh.pial']);
-    [noder,elemr] = meshresample(nodeorigr,elemorigr,0.15);
 
-    [nodeorigl,elemorigl] = read_surf([dirname 'surf/lh.pial']);
-    [nodel,eleml] = meshresample(nodeorigl,elemorigl,0.15);
-    close(h);
+h = [];
 
-    write_surf([dirname 'surf/rh.pial_resampled'], noder, elemr);
-    write_surf([dirname 'surf/lh.pial_resampled'], nodel, eleml);
-
-elseif exist([dirname 'surf/rh.pial_resampled'],'file') && ...
-       exist([dirname 'surf/lh.pial_resampled'],'file')
-
-    [noder,elemr] = read_surf([dirname 'surf/rh.pial_resampled']);
-    [nodel,eleml] = read_surf([dirname 'surf/lh.pial_resampled']);
-
+if strcmp(fs2viewer.surfs.pial_rh.filename, [dirname, 'rh.pial'])
+    h = waitbar_msg_print('Downsampling right brain surface. This may take a few minutes...');
+    [nodeorigr, elemorigr] = read_surf([dirname, 'rh.pial']);
+    [noder, elemr] = reduceMesh(nodeorigr, elemorigr, 0.15);
+    write_surf([dirname, 'rh.pial_resampled'], noder, elemr);
+    fs2viewer.surfs.pial_rh.filename = [dirname, 'rh.pial_resampled'];
 end
 
+if strcmp(fs2viewer.surfs.pial_lh.filename, [dirname, 'lh.pial'])
+    if isempty(h)
+        h = waitbar_msg_print('Downsampling left brain surface. . This may take a few minutes...');
+    else
+        waitbar_msg_print('Downsampling left brain surface. . This may take a few minutes...', h, 1, 2);
+    end
+    [nodeorigl, elemorigl] = read_surf([dirname, 'lh.pial']);
+    [nodel, eleml] = reduceMesh(nodeorigl, elemorigl, 0.15);
+    write_surf([dirname, 'lh.pial_resampled'], nodel, eleml);
+    fs2viewer.surfs.pial_lh.filename = [dirname, 'lh.pial_resampled'];
+end
+
+if strcmp(fs2viewer.surfs.pial_rh.filename, [dirname, 'rh.pial_resampled'])  && ...
+        strcmp(fs2viewer.surfs.pial_lh.filename, [dirname, 'lh.pial_resampled'])
+    [noder, elemr] = read_surf([dirname, 'rh.pial_resampled']);
+    [nodel, eleml] = read_surf([dirname, 'lh.pial_resampled']);
+end
+
+
+if ~isempty(h)
+    close(h);
+end
+
+% Check to see if surface exist
 if isempty(noder) | isempty(nodel) | isempty(elemr) | isempty(eleml)
     return;
 end
@@ -44,31 +53,17 @@ nnoder = size(noder,1);
 node = [noder ; nodel];
 elem = [elemr ; eleml+nnoder];
 
-if ~exist([dirname 'anatomical'], 'dir')
-    mkdir([dirname 'anatomical']);
-end
+% Transform pialsurf to headvol space
+% We make an assumption here that external surface file are in RAS coordinates
+% and are therefore related to the head volume by the T_2vol transformation matrix.
+% This assumtion is based on Freesurfer.
+%
+% TBD: to make this more generic, add options for external surface files
+% that doesn't assume Freesurfer and therefore doesn't assume RAS
+% coordinates for surfaces.
+pialsurf.T_2vol = inv(get_mri_vol2surf(fs2viewer.hseg.volume));
+pialsurf.mesh.vertices = xform_apply(node, pialsurf.T_2vol);
+pialsurf.mesh.faces = elem;
 
-write_surf([dirname 'anatomical/pialsurf.mesh'], node, elem);
-
-if ~exist([dirname 'vox2ras.txt'],'file')
-    if islinux()
-        cmd = sprintf('mri_info --vox2ras-tkr %s/mri/T1.nii > %s/vox2ras.txt', dirname, dirname);        
-        system(cmd);
-    end
-end
-
-if exist([dirname 'vox2ras.txt'],'file')
-    pialsurf2vol = inv(load([dirname 'vox2ras.txt']));
-    save([dirname 'anatomical/pialsurf2vol.txt'],'-ascii','pialsurf2vol');    
-else
-    if exist([dirname 'mri/hseg.nii'],'file')
-        volnii = load_untouch_nii([dirname 'mri/hseg.nii']);
-    elseif exist([dirname 'mri/T1.nii'],'file')
-        volnii = load_untouch_nii([dirname 'mri/T1.nii']);
-    end
-    vox2ras = get_nii_vox2ras(volnii);
-    pialsurf2vol = inv([vox2ras; 0 0 0 1]);
-    save([dirname 'anatomical/pialsurf2vol.txt'],'-ascii','pialsurf2vol');
-end
 status = 0;
 

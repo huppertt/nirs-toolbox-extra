@@ -1,17 +1,10 @@
-function saveHeadvol(headvol, dirname, mode)
+function saveHeadvol(headvol, mode)
 
 if isempty(headvol) | isempty(headvol.img)
     return;
 end
 
-if ~exist('dirname','var')  | isempty(dirname)
-    dirname = [headvol.pathname, '/anatomical/'];
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/anatomical/'];    
-end
+dirname = [headvol.pathname, '/anatomical/'];
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end

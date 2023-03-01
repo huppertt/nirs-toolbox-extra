@@ -1,4 +1,4 @@
-function [orientation, o] = getOrientation(nz, iz, rpa, lpa, cz, czo)
+function [orientation, o] = getOrientation(varargin)
 
 %
 % Usage:
@@ -64,21 +64,41 @@ DEBUG2 = 0;
 orientation = '';
 o = [];
 
-if exist('nz','var') & ~exist('iz','var') & ~exist('rpa','var') & ~exist('lpa','var') & ~exist('cz','var')
-    p = nz;
-    nz  = p(1,:);
-    iz  = p(2,:);
-    rpa = p(3,:);
-    lpa = p(4,:);
-    cz  = p(5,:);
-    if size(p,1)==6
-        czo = p(6,:);
+if nargin>4
+    nz  = varargin{1};
+    iz  = varargin{2};
+    rpa = varargin{3};
+    lpa = varargin{4};
+    cz  = varargin{5};
+    czo = [];
+    if nargin==6
+        czo = varargin{6};
+    end
+elseif nargin==1
+    p = varargin{1};
+    if all(size(p)==[5,3])
+        nz  = p(1,:);
+        iz  = p(2,:);
+        rpa = p(3,:);
+        lpa = p(4,:);
+        cz  = p(5,:);
+        czo = [];
+        if size(p,1)==6
+            czo = p(6,:);
+        end
+    elseif all(size(p)==[4,4])
+        T_2ras = varargin{1};
+        orientation = orientationFromMatrix(T_2ras);
+        return;
+    elseif isstruct(varargin{1})
+        T_2ras = varargin{1};
+        orientation = orientationFromMatrix(T_2ras);
+        return;        
+    else
+        return;
     end
 end
-if ~exist('czo','var')
-    czo = [];
-end
-
+      
 if isempty(nz) | isempty(iz) | isempty(rpa) | isempty(lpa) | isempty(cz)
     return;
 end
@@ -107,7 +127,7 @@ cz  = xform_apply(cz , T3);
 czo = xform_apply(czo, T3);
 
 if DEBUG1
-    displayLandmarks(nz, iz, rpa, lpa, cz, czo);
+    showLandmarks(nz, iz, rpa, lpa, cz, czo);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,7 +163,7 @@ cz_new  = p_new(5,:);
 czo_new = p_new(6,:);
 
 if DEBUG2
-    displayLandmarks(nz_new, iz_new, rpa_new, lpa_new, cz_new, czo_new);
+    showLandmarks(nz_new, iz_new, rpa_new, lpa_new, cz_new, czo_new);
 end
 
 
@@ -191,50 +211,49 @@ end
 
 
 
-% -----------------------------------------------------------------------
-function ax = findClosestAxes(v)
-
-s = dist3(v, [0,0,0]);
-
-xyz(1,:) = [ s, 0, 0];
-xyz(2,:) = [-s, 0, 0];
-xyz(3,:) = [ 0, s, 0];
-xyz(4,:) = [ 0,-s, 0];
-xyz(5,:) = [ 0, 0, s];
-xyz(6,:) = [ 0, 0,-s];
-
-d(1) = dist3(v, xyz(1,:));
-d(2) = dist3(v, xyz(2,:));
-d(3) = dist3(v, xyz(3,:));
-d(4) = dist3(v, xyz(4,:));
-d(5) = dist3(v, xyz(5,:));
-d(6) = dist3(v, xyz(6,:));
-
-[~,i] = min(d);
-ax = xyz(i,:);
-
-
-
 
 % ----------------------------------------------------------------------
-function displayLandmarks(nz,iz,rpa,lpa,cz,czo)
+function ostr = orientationFromMatrix(M)
+    
+% ------------------------------------------------------------------
+%   This code is originally from a Freesurfer C function called 
+%   MRIdircosToOrientationString().
+%
+%   It examines the direction cosines and creates an Orientation String. 
+%   The Orientation String is a three
+%   character string indicating the primary direction of each axis
+%   in the 3d matrix. The characters can be L,R,A,P,I,S. Case is not
+%   important, but upper case is used here. If ras_good_flag == 0,
+%   then ostr = ??? and 1 is returned.
+% ------------------------------------------------------------------
 
-l1 = points_on_line(rpa, lpa, 1/100, 'all');
-l2 = points_on_line(nz, iz, 1/100, 'all');
-l3 = points_on_line(cz, czo, 1/100, 'all');
+ostr = '';
 
-set(gca, {'xgrid', 'ygrid','zgrid'}, {'on','on','on'}); 
-axis vis3d; 
-axis equal
-rotate3d
-hold on
-
-hl1 = plot3(l1(:,1), l1(:,2), l1(:,3), '.r'); 
-hl2 = plot3(l2(:,1), l2(:,2), l2(:,3), '.g');
-hl3 = plot3(l3(:,1), l3(:,2), l3(:,3), '.b');
-
-hrpa = plot3(rpa(:,1), rpa(:,2), rpa(:,3), '.c', 'markersize',30);
-hnz = plot3(nz(:,1), nz(:,2), nz(:,3), '.m', 'markersize',30);
-hcz = plot3(cz(:,1), cz(:,2), cz(:,3), '.k', 'markersize',30);
-
-
+for c=1:3
+    sag = M(1,c);  % LR axis
+    cor = M(2,c);  % PA axis
+    ax  = M(3,c);  % IS axis
+    
+    if abs(sag) > abs(cor) && abs(sag) > abs(ax)
+        if (sag > 0)
+            ostr(c) = 'R';
+        else
+            ostr(c) = 'L';
+        end
+        continue;
+    end
+    if abs(cor) > abs(ax)
+        if (cor > 0)
+            ostr(c) = 'A';
+        else
+            ostr(c) = 'P';
+        end
+        continue;
+    end
+    if (ax > 0)
+        ostr(c) = 'S';
+    else
+        ostr(c) = 'I';
+    end
+end
+    

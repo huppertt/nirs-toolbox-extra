@@ -42,15 +42,11 @@ else
 
     if exist([dirname, 'headsurf2vol.txt'],'file')
         T_2vol = load([dirname, 'headsurf2vol.txt'],'-ascii');
+    else
+        T_2vol = eye(4);
     end
     v = xform_apply(v,T_2vol);
     fv.vertices = v;
-    
-     
-    if(min(f(:))==0)
-        f=f+1;
-    end
-    
     fv.faces = f;
     
     headsurf.mesh = fv;

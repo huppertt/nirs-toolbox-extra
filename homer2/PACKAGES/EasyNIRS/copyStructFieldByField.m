@@ -1,36 +1,46 @@
 function s1=copyStructFieldByField(s1,s2,type)
 
+if ~strcmp(class(s1),class(s2))
+    if ~isobject(s1) && ~isstruct(s2)
+        if ~isstruct(s1) && ~isobject(s2)
+            return;
+        end
+    end
+end
+
 if exist('type','var') && strcmp(type,'procInput')
     s2 = convertProcInputToCurrentVer(s2);
 end
 
-if ~strcmp(class(s1),class(s2))
-    return;
-end
-
-if strcmp(class(s1),'struct')
-
-    fields = fieldnames(s2);
-    for ii=1:length(fields)
-        if isempty(s1)
-            s1 = struct();
-        end
-        field_class = eval(sprintf('class(s2.%s)',fields{ii}));
-        if ~isfield(s1,fields{ii})
-            if strcmp(field_class,'cell')
-                field_arg='{}';
-            else
-                field_arg='[]';
-            end
-            eval(sprintf('s1.%s = %s(%s);',fields{ii},field_class,field_arg));
-        end
-        eval(sprintf('s1.%s = copyStructFieldByField(s1.%s,s2.%s);',fields{ii},fields{ii},fields{ii}));
+if isstruct(s1) || isobject(s1)
+    
+    if ~isstruct(s2) && ~isobject(s2)
+        return;
     end
-
+    
+    for jj=1:length(s2)
+        fields = fieldnames(s2(jj));
+        for ii=1:length(fields)
+            field_class = eval(sprintf('class(s2(jj).%s)',fields{ii}));
+            if ~isproperty(s1,fields{ii}) || length(s1)<jj
+                if isobject(s1)
+                    continue;
+                end
+                if strcmp(field_class,'cell')
+                    field_arg='{}';
+                else
+                    field_arg='[]';
+                end
+                eval(sprintf('s1(jj).%s = %s(%s);',fields{ii},field_class,field_arg));
+            end
+            eval(sprintf('s1(jj).%s = copyStructFieldByField(s1(jj).%s, s2(jj).%s);', fields{ii}, fields{ii}, fields{ii}));
+        end
+    end
+    
 else
-
+    
     s1 = s2;
-
+    
 end
 
 
@@ -38,20 +48,20 @@ end
 % ------------------------------------------------------------
 function procInput = convertProcInputToCurrentVer(procInput)
 
-if isfield(procInput,'procFunc') && ~isempty(procInput.procFunc)
-    if isfield(procInput.procFunc,'funcCall')
+if isproperty(procInput,'procFunc') && ~isempty(procInput.procFunc)
+    if isproperty(procInput.procFunc,'funcCall')
         procInput.procFunc.funcName = procInput.procFunc.funcCall;
         procInput.procFunc = rmfield(procInput.procFunc,'funcCall');
     end
-    if isfield(procInput.procFunc,'funcCallArgIn')
+    if isproperty(procInput.procFunc,'funcCallArgIn')
         procInput.procFunc.funcArgIn = procInput.procFunc.funcCallArgIn;
         procInput.procFunc = rmfield(procInput.procFunc,'funcCallArgIn');
     end
-    if isfield(procInput.procFunc,'funcCallArgOut')
+    if isproperty(procInput.procFunc,'funcCallArgOut')
         procInput.procFunc.funcArgOut = procInput.procFunc.funcCallArgOut;
         procInput.procFunc = rmfield(procInput.procFunc,'funcCallArgOut');
     end
-    if ~isfield(procInput.procFunc,'funcNameUI')
+    if ~isproperty(procInput.procFunc,'funcNameUI')
         procInput.procFunc.funcNameUI = procInput.procFunc.funcName;
     end
 end

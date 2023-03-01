@@ -1,17 +1,33 @@
-function [subjDirs, groupDir] = findSubjDirs(dirname)
+function [subjDirs, groupDir, group] = findSubjDirs(dirname)
+
+if ~exist('dirname','var') || ~exist(dirname, 'dir')
+    dirname = pwd;
+end
+if dirname(end)~='/' && dirname(end)~='\'
+    dirname(end+1) = '/';
+end
+
+[subjDirs, groupDir, group] = searchDir(dirname);
+if isempty(groupDir)
+    % try the parent folder one level up. To do that get fileparts of 
+    % dirname without the '/' at the end and fileparts will give 
+    % back the parent folder. 
+    dirname = fileparts(dirname(1:end-1));
+    [subjDirs, groupDir, group] = searchDir(dirname);
+end
+
+
+
+% -------------------------------------------------------------
+function [subjDirs, groupDir, group] = searchDir(dirname)
 
 subjDirs = mydir('');
 groupDir = '';
 
-if ~exist('dirname','var') | isempty(dirname)
-    dirname = './';
-end
-
 currdir = pwd;
 
-% If groupResult.mat does not exist in the folder dirname then it's not a
-% group folder. 
-if ~exist([dirname, 'groupResults.mat'],'file')
+group = loadGroupNirsDataFile(dirname);
+if isempty(group)
     return;
 end
 
@@ -33,14 +49,17 @@ for ii=1:length(subjDirs0)
     if strcmp(subjDirs0(ii).name,'hide')   
        continue;
     end
+    if kk>length(group.subjs)
+       break;
+    end
     
     cd(subjDirs0(ii).name);
     foos = mydir({'*.nirs','*.sd','*.SD','atlasViewer.mat'});
-    if length(foos)>0
+    if length(foos) > 0
         subjDirs(kk) = subjDirs0(ii);
         kk=kk+1;
     end
-    cd('../');    
+    cd('../');
 end
 
 cd(currdir);
@@ -72,5 +91,4 @@ else
         files(ii) = dir(files0{ii});
     end
 end
-
 

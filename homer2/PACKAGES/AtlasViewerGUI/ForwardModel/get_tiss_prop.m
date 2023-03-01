@@ -151,11 +151,11 @@ for i=1:m
                 propval(j,i) = ANISOTROPY_SKIN_DEF_VAL;
             case {'skull', 'bone'}
                 propval(j,i) = ANISOTROPY_SKULL_DEF_VAL;
-            case {'dm' , 'dura mater'}
+            case {'dura', 'dura mater', 'dm'}
                 propval(j,i) = ANISOTROPY_DM_DEF_VAL;
             case {'csf', 'cerebral spinal fluid'}
                 propval(j,i) = ANISOTROPY_CSF_DEF_VAL;
-            case {'gm', 'gray matter'}
+            case {'gm', 'gray matter', 'brain'}
                 propval(j,i) = ANISOTROPY_GM_DEF_VAL;
             case {'wm', 'white matter'}
                 propval(j,i) = ANISOTROPY_WM_DEF_VAL;
@@ -172,11 +172,11 @@ for i=1:m
                 propval(j,i) = SCATTERING_SKIN_DEF_VAL;
             case {'skull', 'bone'}
                 propval(j,i) = SCATTERING_SKULL_DEF_VAL;
-            case {'dm' , 'dura mater'}
+            case {'dura', 'dura mater', 'dm'}
                 propval(j,i) = SCATTERING_DM_DEF_VAL;
             case {'csf', 'cerebral spinal fluid'}
                 propval(j,i) = SCATTERING_CSF_DEF_VAL;
-            case {'gm', 'gray matter'}
+            case {'gm', 'gray matter', 'brain'}
                 propval(j,i) = SCATTERING_GM_DEF_VAL;
             case {'wm', 'white matter'}
                 propval(j,i) = SCATTERING_WM_DEF_VAL;
@@ -193,11 +193,11 @@ for i=1:m
                 propval(j,i) = ABSORPTION_SKIN_DEF_VAL;
             case {'skull', 'bone'}
                 propval(j,i) = ABSORPTION_SKULL_DEF_VAL;
-            case {'dm' , 'dura mater'}
+            case {'dura', 'dura mater', 'dm'}
                 propval(j,i) = ABSORPTION_DM_DEF_VAL;
             case {'csf', 'cerebral spinal fluid'}
                 propval(j,i) = ABSORPTION_CSF_DEF_VAL;
-            case {'gm', 'gray matter'}
+            case {'gm', 'gray matter', 'brain'}
                 propval(j,i) = ABSORPTION_GM_DEF_VAL;
             case {'wm', 'white matter'}
                 propval(j,i) = ABSORPTION_WM_DEF_VAL;
@@ -214,11 +214,11 @@ for i=1:m
                 propval(j,i) = REFRACTION_SKIN_DEF_VAL;
             case {'skull', 'bone'}
                 propval(j,i) = REFRACTION_SKULL_DEF_VAL;
-            case {'dm' , 'dura mater'}
+            case {'dura', 'dura mater', 'dm'}
                 propval(j,i) = REFRACTION_DM_DEF_VAL;
             case {'csf', 'cerebral spinal fluid'}
                 propval(j,i) = REFRACTION_CSF_DEF_VAL;
-            case {'gm', 'gray matter'}
+            case {'gm', 'gray matter', 'brain'}
                 propval(j,i) = REFRACTION_GM_DEF_VAL;
             case {'wm', 'white matter'}
                 propval(j,i) = REFRACTION_WM_DEF_VAL;

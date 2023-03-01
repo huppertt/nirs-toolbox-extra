@@ -67,16 +67,23 @@ if isempty(procInput.procFunc)
     return;
 end
 
+if procInput.procFunc.nFunc==0
+    menu('Processing stream is empty. Try creating or loading a new processing stream.','OK');
+    return;
+end
+
 clf
 procInput.procFunc = parseProcStreamHelp(procInput.procFunc,hmr);
 set(hObject,'units','characters');
 nfunc = length(procInput.procFunc.funcName);
 
 % Pre-calculate figure height
+funcHeight = 1;
 for iFunc = 1:nfunc
     funcHeight(iFunc) = 1+procInput.procFunc.nFuncParam(iFunc)-1;
 end
 ystep = 1.8;
+ysize = 1.5;
 ysize_tot = sum(funcHeight)*ystep + nfunc*2 + 5;
 xsize_fname = getFuncNameMaxStrLength(procInput.procFunc.funcNameUI,hObject);
 xsize_pname = getParamNameMaxStrLength(procInput.procFunc.funcParam,hObject);
@@ -88,7 +95,7 @@ xsize_tot  = xpos_pbttn+15;
 % Set figure size 
 set(hObject,'units','characters');
 pos = get(hObject,'position');
-set(hObject,'position',[pos(1),pos(2),xsize_tot,ysize_tot]);
+set(hObject,'position',[pos(1),pos(2)-pos(2)*.98,xsize_tot,ysize_tot]);
 set(hObject,'units','pixels');
 set(hObject,'color',[1 1 1]);
 
@@ -99,7 +106,7 @@ for iFunc = 1:nfunc
     % Draw function name
     xsize = length(procInput.procFunc.funcNameUI{iFunc});
     xsize = xsize+(5-mod(xsize,5));
-    h_fname = uicontrol(hObject,'style','text','units','characters','position',[2 ypos xsize 1],...
+    h_fname = uicontrol(hObject,'style','text','units','characters','position',[2 ypos xsize ysize],...
                         'string',procInput.procFunc.funcNameUI{iFunc});
     set(h_fname,'backgroundcolor',[1 1 1], 'units','normalized');
     set(h_fname,'horizontalalignment','left');
@@ -107,7 +114,7 @@ for iFunc = 1:nfunc
     
     % Draw pushbutton to see output results if requested in config file
     if procInput.procFunc.funcArgOut{iFunc}(1)=='#'
-        h_bttn=uicontrol(hObject,'style','pushbutton','units','characters','position',[xpos_pbttn ypos 10 1.3],...
+        h_bttn=uicontrol(hObject,'style','pushbutton','units','characters','position',[xpos_pbttn ypos 10 ysize],...
             'string','Results');
         eval( sprintf(' fcn = @(hObject,eventdata)EasyNIRS_ProcessOpt(''pushbutton_Callback'',hObject,%d,guidata(hObject));',iFunc) );
         set( h_bttn, 'Callback',fcn, 'units','normalized')
@@ -118,7 +125,7 @@ for iFunc = 1:nfunc
         % Draw parameter names
         xsize = length(procInput.procFunc.funcParam{iFunc}{iParam});
         xsize = xsize+(5-mod(xsize,5))+5;
-        h_pname=uicontrol(hObject,'style','text','units','characters','position',[xpos_pname ypos xsize 1],...
+        h_pname=uicontrol(hObject,'style','text','units','characters','position',[xpos_pname ypos xsize ysize],...
                           'string',procInput.procFunc.funcParam{iFunc}{iParam});
         set(h_pname,'backgroundcolor',[1 1 1], 'units','normalized');
         set(h_pname,'horizontalalignment','left');
@@ -165,12 +172,10 @@ procInput.procParam = procParam0;
 hmr.procInput = procInput;
 
 % Make sure the options GUI fits on screen
-set(hObject, 'units','normalized')
-p = get(hObject,'position');
-if (p(2)+p(4))>.9
-    set(hObject, 'position',[.10, .10, p(3), .80]);
-end
-
+set(hObject,'units','normalized');
+h = ysize_tot/100;
+k = 1-h;
+positionGUI(hObject, 0.10, 0.12, 0.38, k*h+h);
 
 
 % ----------------------------------------------------------

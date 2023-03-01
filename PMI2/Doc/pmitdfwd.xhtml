@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Time-domain Imaging</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Time-domain Imaging</h1>
+
+<p id="Description"> <mat>TD2pt()</mat> and <mat>TD3pt()</mat>
+calculate the unperturbed fluence and the forward matrix respectively
+for a time-domain imager in the first-Born approximation.  These
+routines are safe to call if you in advance that you are only
+calculating a time-domain forward problem.</p>
+
+<p>See <a href="genbornmat.xhtml">genBornMat()</a> for a description of
+the <mat>muVec</mat> flags.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="TD2pt.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	Phi0 = TD2pt(SD, Medium, MeasList);
+    </td>
+</tr>
+<tr><th rowspan="3" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname"></td>
+    <td></td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="TD3pt.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[Phi0,A] = TD3pt(SD, Medium, MeasList, muVec);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">muVec</td>
+    <td>Flags to indicate optical perturbations
+       <span style="font-size: small;">(see 
+       <mat><a href="genbornmat.xhtml">genBornMat()</a></mat>
+       for a description of the <mat>muVec</mat> flags)</span>
+       </td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">Phi0</td>
+    <td>Fluence for a homogeneous medium</td>
+</tr>
+<tr>
+    <td class="varname">A</td>
+    <td>The forward matrix</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>
+<mat>TD2pt()</mat> calculates detected signal for a given measurement
+pair of a time-domain imager assuming homogeneous optical properties.
+The detected signal is calculated from the Green's function
+</p>
+<math xmlns="&mathml;" display="block">
+    <msup>
+	<mi>&Phi;</mi>
+	<mn>0</mn>
+    </msup>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>src</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>det</mo>
+	</msub>
+	<mi>t</mi>
+    </mfenced>
+    <mo>=</mo>
+    <mrow>
+	<msubsup>
+	    <mo>&Integral;</mo>
+	    <mi>t</mi>
+	    <mrow>
+		<mi>t</mi>
+		<mo>+</mo>
+		<msub>
+		    <mi>T</mi>
+		    <mo>gate</mo>
+		</msub>
+	    </mrow>
+	</msubsup>
+
+	<mo>&DifferentialD;</mo>
+	<msup>
+	    <mi>t</mi>
+	    <mo>&prime;</mo>
+	</msup>
+    </mrow>
+
+    <mi>G</mi>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mrow>
+	    <msub>
+		<mi type="vector">r</mi>
+		<mo>det</mo>
+	    </msub>
+	    <mo>-</mo>
+	    <msub>
+		<mi type="vector">r</mi>
+		<mo>src</mo>
+	    </msub>
+	</mrow>
+	<msup>
+	    <mi>t</mi>
+	    <mo>&prime;</mo>
+	</msup>
+    </mfenced>
+</math>
+<p class="noindent">
+where, for time-domain imaging, the Green's function is
+</p>
+<math xmlns="&mathml;" display="block">
+    <mi>G</mi>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mi>r</mi>
+	<mi>t</mi>
+    </mfenced>
+    <mo>=</mo>
+
+    <msup>
+	<mfenced>
+	    <mrow>
+		<mn>4</mn>
+		<mo>&InvisibleTimes;</mo>
+		<mi>D</mi>
+		<mo>&InvisibleTimes;</mo>
+		<mi>t</mi>
+	    </mrow>
+	</mfenced>
+	<mrow>
+	    <mo>-</mo>
+	    <mn>3</mn>
+	    <mo>/</mo>
+	    <mn>2</mn>
+	</mrow>
+    </msup>
+
+    <mo>&InvisibleTimes;</mo>
+
+    <mi>exp</mi>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<mrow>
+	    <mfrac>
+		<mrow>
+		    <mo>-</mo>
+		    <msup>
+			<mi>r</mi>
+			<mn>2</mn>
+		    </msup>
+		</mrow>
+		<mrow>
+		    <mn>4</mn>
+		    <mo>&InvisibleTimes;</mo>
+		    <mi>D</mi>
+		    <mo>&InvisibleTimes;</mo>
+		    <mi>t</mi>
+		</mrow>
+	    </mfrac>
+	    <mo>-</mo>
+	    <mi>v</mi>
+	    <msub>
+		<mi>&mu;</mi>
+		<mo>a</mo>
+	    </msub>
+	    <mo>&InvisibleTimes;</mo>
+	    <mi>t</mi>
+	</mrow>
+    </mfenced>
+    <mtext>,</mtext>
+</math>
+<p class="noindent">
+the diffusion coefficient  <math xmlns="&mathml;">D</math> is given by
+</p>
+<math xmlns="&mathml;" display="block">
+    <mi>D</mi>
+    <mo>=</mo>
+    <mfrac>
+	<mi>v</mi>
+	<mrow>
+	    <mn>3</mn> 
+	    <mo>&InvisibleTimes;</mo>
+	    <mfenced>
+		<mrow>
+		    <msubsup>
+			<mi>&mu;</mi>
+			<mo>s</mo>
+			<mo>&prime;</mo>
+		    </msubsup>
+		    <mo>+</mo>
+		    <msub>
+			<mi>&mu;</mi>
+			<mo>a</mo>
+		    </msub>
+		</mrow>
+	    </mfenced>
+	</mrow>
+    </mfrac>
+    <mtext>,</mtext>
+</math>
+<p class="noindent">
+and 
+<math xmlns="&mathml;">
+    <mi>v</mi>
+    <mo>=</mo>
+    <mi>c</mi>
+    <mo>/</mo>
+    <mi>n</mi>
+</math> 
+is the local speed of light.  By definition, 
+<math xmlns="&mathml;">
+    <msub>
+	<mi>t</mi>
+	<mo>src</mo>
+    </msub>
+    <mtext>,</mtext>
+</math>
+the time when the light enters the medium, defines
+<math xmlns="&mathml;">
+    <mi>t</mi>
+    <mo>=</mo>
+    <mn>0</mn>
+    <mtext>.</mtext>
+</math>
+</p>
+
+<p>
+<mat>TD3pt()</mat> calculates the forward matrix <math
+xmlns="&mathml;"><mi type="matrix">A</mi></math>, which maps
+perturbations in the optical properties to perturbations in the
+measured fluences in the first Born approximation.  <em>Only the first
+Born approximation is supported by <mat>TD3pt()</mat>.</em> For
+absorbing perturbations, the forward matrix is given in terms of the
+homogeneous Green's functions as
+</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi type="matrix">A</mi>
+	<mo>a</mo>
+    </msub>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>src</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>vox</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>det</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">t</mi>
+	    <mo>det</mo>
+	</msub>
+    </mfenced>
+    <mo>=</mo>
+    <mfenced>
+	<mfrac>
+	    <mrow>
+		<mo>-</mo>
+		<msub>
+		    <mi>&Delta;&mu;</mi>
+		    <mo>a</mo>
+		</msub>
+		<mo>&ApplyFunction;</mo>
+		<mfenced>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>vox</mo>
+		    </msub>
+		</mfenced>
+	    </mrow>
+	    <mrow>
+		<mi>V</mi>
+		<mo>&ApplyFunction;</mo>
+		<mfenced>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>vox</mo>
+		    </msub>
+		</mfenced>
+	    </mrow>
+	</mfrac>
+    </mfenced>
+    <mo>&InvisibleTimes;</mo>
+    <mrow>
+	<msubsup>
+	    <mo>&Integral;</mo>
+	    <msub>
+		<mi>t</mi>
+		<mo>det</mo>
+	    </msub>
+	    <mrow>
+		<msub>
+		    <mi>t</mi>
+		    <mo>det</mo>
+		</msub>
+		<mo>+</mo>
+		<msub>
+		    <mi>t</mi>
+		    <mo>gate</mo>
+		</msub>
+	    </mrow>
+	</msubsup>
+
+	<mo>&DifferentialD;</mo>
+	<msup>
+	    <mi>t</mi>
+	    <mo>&prime;</mo>
+	</msup>
+    </mrow>
+    <mrow>
+	<msubsup>
+	    <mo>&Integral;</mo>
+	    <mn>0</mn>
+	    <msup>
+		<mi>t</mi>
+		<mo>&prime;</mo>
+	    </msup>
+	</msubsup>
+	
+	<mo>&DifferentialD;</mo>
+	<msup>
+	    <mi>t</mi>
+	    <mo>&Prime;</mo>
+	</msup>
+    </mrow>
+
+    <mrow>
+	<mi>G</mi>
+	<mo>&ApplyFunction;</mo>
+	<mfenced>
+	    <mrow>
+		<msub>
+		    <mi type="vector">r</mi>
+		    <mo>vox</mo>
+		</msub>
+		<mo>-</mo>
+		<msub>
+		    <mi type="vector">r</mi>
+		    <mo>src</mo>
+		</msub>
+	    </mrow>
+	    <msup>
+		<mi>t</mi>
+		<mo>&Prime;</mo>
+	    </msup>
+	</mfenced>
+    </mrow>
+    <mo>&InvisibleTimes;</mo>
+    <mrow>
+	<mi>G</mi>
+	<mo>&ApplyFunction;</mo>
+	<mfenced>
+	    <mrow>
+		<msub>
+		    <mi type="vector">r</mi>
+		    <mo>det</mo>
+		</msub>
+		<mo>-</mo>
+		<msub>
+		    <mi type="vector">r</mi>
+		    <mo>vox</mo>
+		</msub>
+	    </mrow>
+	    <mrow>
+		<msup>
+		    <mi>t</mi>
+		    <mo>&prime;</mo>
+		</msup>
+		<mo>-</mo>
+		<msup>
+		    <mi>t</mi>
+		    <mo>&Prime;</mo>
+		</msup>
+	    </mrow>
+	</mfenced>
+    </mrow>
+</math>
+<p class="noindent">
+where <math xmlns="&mathml;"><mi>V</mi></math> is the volume of the 
+voxel and 
+<math xmlns="&mathml;">
+    <msub>
+	<mi>&Delta;&mu;</mi>
+	<mo>a</mo>
+    </msub>
+</math>
+is the perturbation, relative to the background (average) absorption.
+</p>
+
+<p>
+For scattering perturbations, the forward matrix can be written in
+terms of dot products of the gradients of the Green's function
+</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi type="matrix">A</mi>
+	<mo>a</mo>
+    </msub>
+    <mo>&ApplyFunction;</mo>
+    <mfenced>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>src</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>vox</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">r</mi>
+	    <mo>det</mo>
+	</msub>
+	<msub>
+	    <mi type="vector">t</mi>
+	    <mo>det</mo>
+	</msub>
+    </mfenced>
+    <mo>=</mo>
+    <mspace linebreak="goodbreak" />
+    <mrow>
+	<mfenced>
+	    <mfrac>
+		<mrow>
+		    <mi>v</mi>
+		    <mo>&InvisibleTimes;</mo>
+		    <mi>&Delta;D</mi>
+		    <mo>&ApplyFunction;</mo>
+		    <mfenced>
+			<msub>
+			    <mi type="vector">r</mi>
+			    <mo>vox</mo>
+			</msub>
+		    </mfenced>
+		</mrow>
+		<mrow>
+		    <mi>V</mi>
+		    <mo>&ApplyFunction;</mo>
+		    <mfenced>
+			<msub>
+			    <mi type="vector">r</mi>
+			    <mo>vox</mo>
+			</msub>
+		    </mfenced>
+		    <mo>&InvisibleTimes;</mo>
+		    <mi>D</mi>
+		    <mo>&ApplyFunction;</mo>
+		    <mfenced>
+			<msub>
+			    <mi type="vector">r</mi>
+			    <mo>vox</mo>
+			</msub>
+		    </mfenced>
+		</mrow>
+	    </mfrac>
+	</mfenced>
+	<mo>&InvisibleTimes;</mo>
+	<mrow>
+	    <msubsup>
+		<mo>&Integral;</mo>
+		<msub>
+		    <mi>t</mi>
+		    <mo>det</mo>
+		</msub>
+		<mrow>
+		    <msub>
+			<mi>t</mi>
+			<mo>det</mo>
+		    </msub>
+		    <mo>+</mo>
+		    <msub>
+			<mi>t</mi>
+			<mo>gate</mo>
+		    </msub>
+		</mrow>
+	    </msubsup>
+
+	    <mo>&DifferentialD;</mo>
+	    <msup>
+		<mi>t</mi>
+		<mo>&prime;</mo>
+	    </msup>
+	</mrow>
+	<mrow>
+	    <msubsup>
+		<mo>&Integral;</mo>
+		<mn>0</mn>
+		<msup>
+		    <mi>t</mi>
+		    <mo>&prime;</mo>
+		</msup>
+	    </msubsup>
+	    
+	    <mo>&DifferentialD;</mo>
+	    <msup>
+		<mi>t</mi>
+		<mo>&Prime;</mo>
+	    </msup>
+	</mrow>
+	<mrow>
+	    <mi>&nabla;G</mi>
+	    <mo>&ApplyFunction;</mo>
+	    <mfenced>
+		<mrow>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>vox</mo>
+		    </msub>
+		    <mo>-</mo>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>src</mo>
+		    </msub>
+		</mrow>
+		<msup>
+		    <mi>t</mi>
+		    <mo>&Prime;</mo>
+		</msup>
+	    </mfenced>
+	</mrow>
+	<mo>&CenterDot;</mo>
+	<mrow>
+	    <mi>&nabla;G</mi>
+	    <mo>&ApplyFunction;</mo>
+	    <mfenced>
+		<mrow>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>det</mo>
+		    </msub>
+		    <mo>-</mo>
+		    <msub>
+			<mi type="vector">r</mi>
+			<mo>vox</mo>
+		    </msub>
+		</mrow>
+		<mrow>
+		    <msup>
+			<mi>t</mi>
+			<mo>&prime;</mo>
+		    </msup>
+		    <mo>-</mo>
+		    <msup>
+			<mi>t</mi>
+			<mo>&Prime;</mo>
+		    </msup>
+		</mrow>
+	    </mfenced>
+	</mrow>
+    </mrow>
+</math>
+<p class="noindent">
+and 
+<math xmlns="&mathml;"><mi>&Delta;D</mi></math>
+is the perturbation, relative to the background (average) diffusion 
+coefficient.
+</p>
+
+<p>
+<mat>TD2pt()</mat> and <mat>TD3pt()</mat> are really just wrapper
+functions; the actual calculation of the fluence is done by a series
+of <a href="pmi-developer.xhtml">low-level routines</a>.  To insure
+future compatibility, though, user code should always call
+<mat>TD2pt()</mat> or <mat>TD3pt()</mat> instead of calling the
+low-level routines.
+</p>
+
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

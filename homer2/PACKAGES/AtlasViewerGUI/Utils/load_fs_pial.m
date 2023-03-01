@@ -9,11 +9,11 @@ if(~exist([subj '/surf/rh.pial_resampled'],'file') | ...
 
     [nodeorigr,elemorigr] = read_surf([subj '/surf/rh.pial']);
     [nodeorigr,elemorigr] = meshcheckrepair(nodeorigr,elemorigr);
-    [noder,elemr] = meshresample(nodeorigr,elemorigr,0.1);
+    [noder,elemr] = reduceMesh(nodeorigr,elemorigr,0.1);
     
     [nodeorigl,elemorigl] = read_surf([subj '/surf/lh.pial']);
     [nodeorigl,elemorigl] = meshcheckrepair(nodeorigl,elemorigl);
-    [nodel,eleml] = meshresample(nodeorigl,elemorigl,0.1);
+    [nodel,eleml] = reduceMesh(nodeorigl,elemorigl,0.1);
     
     nodeorig = [nodeorigr ; nodeorigl];
     elemorig = [elemorigr ; elemorigl+size(nodeorigr,1)];

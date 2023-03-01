@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Merge multiple SD structures</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Merge Multiple SD Structures</h1>
+
+<p id="Description"><mat>mergeSD()</mat> merges multiple SD structures
+into a single combined SD structure.  The measurement lists are
+concatenated in the order passed to the function (i.e.,
+<mat>SD1.MeasList</mat> then <mat>SD2.MeasList</mat> and so on).  As
+part of the merge, duplicate SD field entries are removed and the
+contents of the field are sorted according to their numerical value.
+Thus, while the order of measurements in the measurement list does not
+change, the individual values inside the measurement list may.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="mergeSD.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      SD = mergeSD(SD1, SD2, ...);
+    </td>
+</tr>
+<tr><th class="syntaxHead">Inputs:</th>
+    <td class="varname">SD1, SD2, ...</td>
+    <td>The <mat><a href="pmi-sd.xhtml">SD structures</a></mat>
+    to be merged</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">SD</td>
+    <td>A single <mat><a href="pmi-sd.xhtml">SD structure</a></mat>
+     with all the information in the original set of structures.</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p><mat>mergeSD()</mat> has problems with <mat>SD.SrcAmp</mat> and
+<mat>SD.DetAmp</mat> since there is no obvious way to decide which
+value is the correct one to use.  For now, it's best if
+<mat>SD.SrcAmp</mat> and <mat>SD.DetAmp</mat> is deleted from all the
+<mat>SD</mat> structures before calling <mat>mergeSD()</mat>.</p>
+
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

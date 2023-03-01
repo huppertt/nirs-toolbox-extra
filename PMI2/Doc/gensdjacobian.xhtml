@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Generate Jacobian for unknown coupling coefficients</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Generate Jacobian for Unknown Coupling Coefficients</h1>
+
+<p id="Description"><mat>genSDJacobian()</mat> generates the Jacobian
+for the (presumably) unknown source-detector coupling coefficients.
+See the code for <mat>fitSD()</mat> and <mat>newFitBackground()</mat>
+for examples of its use.  Most users will want to call these functions
+directly, however, instead of calculating the Jacobians directly.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="genSDJacobian.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	J = genSDJacobian(SD, Medium, MeasList, data, Method);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to fit against</td>
+</tr>
+<tr>
+    <td class="varname">Method</td>
+    <td>How the Jacobian should be calculated, "Born" or "Rytov"</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">J</td>
+    <td>The Jacobian</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>The Jacobian (and the system of linear equations that it
+represents) is naturally rank deficient.  One column of the matrix
+should be set to
+<math xmlns="&mathml;"><mn>0</mn></math> before
+inverting.</p>
+
+<p class="noindent">For more information see:
+<div class="reference">
+  David A. Boas, Thomas Gaudette, and Simon R. Arridge, 
+  &quot;Simultaneous imaging and optode calibration with
+        diffuse optical tomography,&quot; 
+  <a href="http://www.opticsexpress.org/"><i>Optics Express</i></a>, 
+  <b>8</b>(5), pg.&nbsp;263, 2001.
+</div>
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

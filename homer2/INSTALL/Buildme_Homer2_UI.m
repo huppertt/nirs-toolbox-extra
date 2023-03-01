@@ -15,7 +15,7 @@ end
 dirnameInstall = pwd;
 cd(dirnameApp);
 
-Buildme('Homer2_UI', {}, {'.svn','DISPLAY','AtlasViewerGUI','tMCimg','SDgui'});
+Buildme('Homer2_UI', {}, {'.svn','DISPLAY','AtlasViewerGUI','tMCimg','SDgui','NIRS_Probe_Designer_V1'});
 for ii=1:length(platform.homer2_exe)
     if exist(['./',  platform.homer2_exe{ii}],'file')
         movefile(['./',  platform.homer2_exe{ii}], dirnameInstall);

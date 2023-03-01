@@ -23,14 +23,13 @@
 % created 10-17-2012, S. Brigadoi
 %
 
-function dcCbsi = hmrMotionCorrectCbsi(dc,SD,flagSkip)
+function dcCbsi = hmrMotionCorrectCbsi(dc,SD,turnon)
 
-if ~exist('flagSkip')
-    flagSkip = 0;
-end
-if flagSkip==1
-    dcCbsi = dc;
-    return;
+if exist('turnon')
+   if turnon==0
+       dcCbsi = dc;
+   return;
+   end
 end
 
 mlAct = SD.MeasListAct; % prune bad channels

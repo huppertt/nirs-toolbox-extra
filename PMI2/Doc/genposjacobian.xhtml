@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Generate Jacobian for unknown positions</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Generate Jacobian for Unknown Positions</h1>
+
+<p id="Description">Calculate the Jacobian matrix for variations in
+optode position from the nominal values in the <mat>SD</mat> structure
+</p>
+<math xmlns="&mathml;" display="block">
+  <msub>
+    <mi>J</mi>
+    <mrow>
+      <mi>i</mi>
+      <mi>j</mi>
+    </mrow>
+  </msub> 
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mo>&part;</mo>
+      <msub>
+	<mi>&phi;</mi>
+	<mo>i</mo>
+      </msub>
+      <mfenced>
+	<mi type="vector">r</mi>
+      </mfenced>
+    </mrow>
+    <mrow>
+      <mo>&part;</mo>
+      <msub>
+	<mi>r</mi>
+	<mo>j</mo>
+      </msub>
+    </mrow>
+  </mfrac>
+</math>
+<p class="noindent">
+where 
+<math xmlns="&mathml;"><msub><mi>r</mi><mo>j</mo></msub></math>
+refers to a single coordinate axis of the vector
+<math xmlns="&mathml;"><mi type="vector">r</mi></math>.
+</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="genPosJacobian.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	J = genPosJacobian(SD, Medium, MeasList, Method, posFlags);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">Method</td>
+    <td>How the Jacobian should be calculated, "Born" or "Rytov"</td>
+</tr>
+<tr>
+    <td class="varname">posFlags</td>
+    <td>Six element vector of 1/0 flags, to calculate
+      perturbations for
+      <math xmlns="&mathml;">
+	  <mfenced open="[" close="]">
+	      <msub> <mi>s</mi> <mi>x</mi> </msub>
+	      <msub> <mi>s</mi> <mi>y</mi> </msub>
+	      <msub> <mi>s</mi> <mi>z</mi> </msub>
+	      <msub> <mi>d</mi> <mi>x</mi> </msub>
+	      <msub> <mi>d</mi> <mi>y</mi> </msub>
+	      <msub> <mi>d</mi> <mi>z</mi> </msub>
+	  </mfenced>
+      </math>
+    </td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">J</td>
+    <td>The Jacobian</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>The matrix <math xmlns="&mathml;"><mi type="matrix">J</mi></math>
+is normally used as part of a non-linear iterative solver.  All
+derivatives are calculated using finite difference and assume a
+homogeneous medium.  For more information on positional calibration
+see:
+<div class="reference">
+Jonathan J. Stott, Joseph P. Culver, Simon R. Arridge, David A. Boas
+&quot;Optode positional calibration in diffuse optical tomography,&quot;
+<i>Applied Optics</i>, <b>42</b>(16), pp.&nbsp;3154&ndash;3162, 2003.
+</div>
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

@@ -100,9 +100,8 @@ groupCurr(1).procInput.SD = ...
 
 % Load group results if they exist and compare with the 
 % current group of files represented by groupCurr
-if exist('./groupResults.mat','file')
-    load( './groupResults.mat' );
-    groupPrev = group;
+groupPrev = loadGroupNirsDataFile('.');
+if ~isempty(groupPrev)
     
     % copy procResult from previous group to current group for 
     % all nodes that still exist in the current group.

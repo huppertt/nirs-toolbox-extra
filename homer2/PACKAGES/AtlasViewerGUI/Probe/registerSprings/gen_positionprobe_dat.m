@@ -1,4 +1,4 @@
-function data = gen_positionprobe_dat(optpos, optconn, anchor_pts)
+function [data, optpos] = gen_positionprobe_dat(optpos, optconn, anchor_pts)
 
 %
 % Usage:

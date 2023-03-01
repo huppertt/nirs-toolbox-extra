@@ -4,7 +4,7 @@ function vol = load_vox(filename,vol)
 % Usage:
 % 
 %    v = load_bin(filename, dims)
-% head
+% 
 % Description:
 %    
 %    Loads a binary file as 8 bit unsigned integers. 
@@ -34,7 +34,7 @@ if exist(filename_img_tiss,'file')
     vol.tiss_prop = get_tiss_prop(filename_img_tiss);
 end
 
-% Generate a transformation files.
+% Load transformations
 filename_2digpts = [filename(1:i(end)-1), '2digpts.txt'];
 if exist(filename_2digpts,'file')
     vol.T_2digpts = load(filename_2digpts,'-ascii');
@@ -44,6 +44,17 @@ filename_2mc = [filename(1:i(end)-1), '2mc.txt'];
 if exist(filename_2mc,'file')
     vol.T_2mc = load(filename_2mc,'-ascii');
 end
+
+filename_2ras = [filename(1:i(end)-1), '2ras.txt'];
+if exist(filename_2ras,'file')
+    vol.T_2ras = load(filename_2ras,'-ascii');
+end
+
+filename_2ref = [filename(1:i(end)-1), '2ref.txt'];
+if exist(filename_2ref,'file')
+    vol.T_2ref = load(filename_2ref,'-ascii');
+end
+
 
 filename_orientation = [filename(1:i(end)-1), '_orientation.txt'];
 if exist(filename_orientation,'file')

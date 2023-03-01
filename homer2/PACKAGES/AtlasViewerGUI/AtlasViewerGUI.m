@@ -48,6 +48,7 @@ dirnameSubj = getSubjDir(argExtern);
 dirnameAtlas = getAtlasDir(argExtern);
 
 fprintf('In AtlasViewerGUI_Init:\n');
+fprintf('   dirnameApp = %s\n', getAppDir());
 fprintf('   dirnameAtlas = %s\n', dirnameAtlas);
 fprintf('   dirnameSubj = %s\n', dirnameSubj);
 
@@ -55,6 +56,7 @@ cd(dirnameSubj);
 
 atlasViewer.handles.figure = hObject;
 atlasViewer.handles.hHbConc = [];
+atlasViewer.handles.hGroupList = [];
 
 % Initialize atlas viewer objects with their respective gui
 % handles
@@ -114,16 +116,11 @@ end
 atlasViewer.dirnameAtlas = dirnameAtlas;
 atlasViewer.dirnameSubj  = dirnameSubj;
 atlasViewer.dirnameProbe = '';
-atlasViewer.groupSubjList = '';
+atlasViewer.groupSubjList = {};
 atlasViewer.handles.menuItemRegisterAtlasToDigpts = handles.menuItemRegisterAtlasToDigpts;
 
 % Set the AtlasViewerGUI version number
-V = AtlasViewerGUI_version();
-if str2num(V{2})==0
-    set(hObject,'name', sprintf('AtlasViewerGUI  (v%s) - %s', [V{1}],cd) )
-else
-    set(hObject,'name', sprintf('AtlasViewerGUI  (v%s) - %s', [V{1} '.' V{2}],cd) )
-end
+[~, V] = AtlasViewerGUI_version(hObject);
 atlasViewer.vrnum = V;
 
 
@@ -161,19 +158,26 @@ fs2viewer    = atlasViewer.fs2viewer;
 if ~exist([dirnameSubj 'atlasViewer.mat'], 'file')
 
     % Load all objects
-    digpts     = getDigpts(digpts, dirnameSubj);
     headvol    = getHeadvol(headvol, searchPaths);
-    headsurf   = getHeadsurf(headsurf, headvol.pathname);
-    refpts     = getRefpts(refpts, headvol.pathname);
-    pialsurf   = getPialsurf(pialsurf, headvol.pathname);
-    labelssurf = getLabelssurf(labelssurf, headvol.pathname);
+    headsurf   = getHeadsurf(headsurf, searchPaths);
+    pialsurf   = getPialsurf(pialsurf, searchPaths);
+    
+    % Check the consistency of the main pieces of the anatomy; make sure
+    % they all come from one source and is not a patchwork from atlas and 
+    % subject folders
+    [headvol, headsurf, pialsurf] = checkAnatomy(headvol, headsurf, pialsurf, handles);
+    
+    digpts     = getDigpts(digpts, dirnameSubj);
+    refpts     = getRefpts(refpts, headsurf.pathname);
+    labelssurf = getLabelssurf(labelssurf, headsurf.pathname);
     probe      = getProbe(probe, dirnameSubj, headsurf, digpts, refpts);
     fwmodel    = getFwmodel(fwmodel, dirnameSubj, pialsurf, headsurf, headvol, probe);
     imgrecon   = getImgRecon(imgrecon, dirnameSubj, fwmodel, pialsurf, probe);
     hbconc     = getHbConc(hbconc, dirnameSubj, pialsurf, probe);
-    fs2viewer  = getFs2Viewer(fs2viewer, dirnameSubj, headsurf, headvol, pialsurf);
-        
+    fs2viewer  = getFs2Viewer(fs2viewer, dirnameSubj);
+   
 end
+
 
 % Set orientation and main axes attributes for all objects
 if ~refpts.isempty(refpts)
@@ -187,24 +191,14 @@ end
 % Display all objects
 digpts     = displayDigpts(digpts);
 probe      = displayProbe(probe, headsurf);
-if isregistered(refpts,digpts) | ...
-   digpts.isempty(digpts) | ...
-   exist([dirnameSubj 'atlasViewer.mat'], 'file')
-
-    refpts     = displayRefpts(refpts);
-    headsurf   = displayHeadsurf(headsurf);
-    pialsurf   = displayPialsurf(pialsurf);
-    labelssurf = displayLabelssurf(labelssurf);
-    fwmodel    = displaySensitivity(fwmodel, pialsurf, labelssurf, probe);
-    imgrecon   = displayImgRecon(imgrecon, fwmodel, pialsurf, labelssurf, probe);
-    hbconc     = displayHbConc(hbconc, pialsurf, probe, fwmodel, imgrecon);
-    axesv      = displayAxesv(axesv, headsurf, initDigpts());
-
-else
-    
-    axesv      = displayAxesv(axesv, initHeadsurf(), digpts);
-
-end
+refpts     = displayRefpts(refpts);
+headsurf   = displayHeadsurf(headsurf);
+pialsurf   = displayPialsurf(pialsurf);
+labelssurf = displayLabelssurf(labelssurf);
+fwmodel    = displaySensitivity(fwmodel, pialsurf, labelssurf, probe);
+imgrecon   = displayImgRecon(imgrecon, fwmodel, pialsurf, labelssurf, probe);
+hbconc     = displayHbConc(hbconc, pialsurf, probe, fwmodel, imgrecon);
+axesv      = displayAxesv(axesv, headsurf, headvol, initDigpts());
 
 % 
 fwmodel.menuoffset  = popupmenuorder.Sensitivity.idx-1;
@@ -234,124 +228,157 @@ atlasViewer.fs2viewer   = fs2viewer;
 % doesn't do anything. It's more like a placeholder. 
 menuItemRegisterAtlasToDigpts_Callback();
 
-
 % Enable menu items 
 AtlasViewerGUI_enableDisable();
 
+% Set GUI size relative to screen size
+positionGUI(hObject);
 
 
-% ---------------------------------------------------------------------
-function [refpts, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc] = ...
-     setOrientationHeadvol(headvol, refpts, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc)
 
-if headvol.isempty(headvol)
-    return;
+
+
+% --------------------------------------------------------------------
+function [headvol, headsurf, pialsurf] = checkAnatomy(headvol, headsurf, pialsurf, handles)
+global atlasViewer
+
+dirnameAtlas = atlasViewer.dirnameAtlas;
+dirnameSubj = atlasViewer.dirnameSubj;
+searchPaths = {dirnameSubj; dirnameAtlas};
+
+% If the head surface and head volume don't agree on anatomy, then
+% keep the object that come from the subject folder and discard that
+% atlas. TBD: Whichever one we keep what we would really want
+% is to generate from the discarded the head volume or head surface
+% with on-the-fly generated head surface or head volume respectively
+if ~headvol.isempty(headvol) && ~headsurf.isempty(headsurf)
+    if ~pathscompare(headvol.pathname, headsurf.pathname)
+        if pathscompare(headvol.pathname, dirnameSubj)
+            
+            % Generate headsurf and pialsurf from headvol
+            headsurf = headvol2headsurf(headvol);
+            pialsurf = headvol2pialsurf(headvol);
+            
+            saveHeadsurf(headsurf);
+            savePialsurf(pialsurf);
+            
+            headsurf = getHeadsurf(headsurf, dirnameSubj);
+            pialsurf = getPialsurf(pialsurf, dirnameSubj);
+            
+            headsurf = setHeadsurfHandles(headsurf, handles);
+            pialsurf = setPialsurfHandles(pialsurf, handles);
+            
+        elseif pathscompare(headsurf.pathname, dirnameSubj)
+            
+            headvol = initHeadvol();    % Discard head volume
+            
+        else
+            
+            headvol = initHeadvol();    % Discard head volume
+            
+        end
+    end
 end
-if isempty(headvol.orientation)
-    return;
-end
+    
+% If the head surface and pial surface don't agree on anatomy, then
+% keep the head surface no matter where it comes from subject or atlas folder
+if ~headsurf.isempty(headsurf)  && ~pialsurf.isempty(pialsurf)
+    if ~pathscompare(headsurf.pathname, pialsurf.pathname)
 
-refpts.orientation     = headvol.orientation;
-refpts.center          = headvol.center;
-
-headsurf.orientation   = headvol.orientation;
-headsurf.center        = headvol.center;
-
-pialsurf.orientation   = headvol.orientation;
-pialsurf.center        = headvol.center;
-
-labelssurf.orientation = headvol.orientation;
-labelssurf.center      = headvol.center;
-
-if isempty(probe.orientation)
-    probe.orientation      = headvol.orientation;
-    probe.center           = headvol.center;
-end
-
-fwmodel.orientation    = headvol.orientation;
-fwmodel.center         = headvol.center;
-
-imgrecon.orientation   = headvol.orientation;
-imgrecon.center        = headvol.center;
-
-
-
-% ---------------------------------------------------------------------
-function [headvol, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc] = ...
-    setOrientationRefpts(refpts, headvol, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc)
-
-if refpts.isempty(refpts)
-    return;
-end
-
-if isempty(refpts.orientation)
-    [nz,iz,rpa,lpa,cz] = getLandmarks(refpts);
-    [refpts.orientation, refpts.center]  = getOrientation(nz,iz,rpa,lpa,cz);
-end 
-
-headvol                = saveHeadvolOrient(headvol, refpts);
-
-headsurf.orientation   = refpts.orientation;
-headsurf.center        = refpts.center;
-
-pialsurf.orientation   = refpts.orientation;
-pialsurf.center        = refpts.center;
-
-labelssurf.orientation = refpts.orientation;
-labelssurf.center      = refpts.center;
-
-if isempty(probe.orientation)
-    probe.orientation      = refpts.orientation;
-    probe.center           = refpts.center;
+        pialsurf = initPialsurf();
+            
+    end
 end
 
-fwmodel.orientation    = refpts.orientation;
-fwmodel.center         = refpts.center;
 
-imgrecon.orientation   = refpts.orientation;
-imgrecon.center        = refpts.center;
+    
+    
+% --------------------------------------------------------------------
+function Edit_Probe_Callback(hObject, eventdata, handles)
+% hObject    handle to Edit_Probe (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global atlasViewer;
 
-hbconc.orientation   = refpts.orientation;
-hbconc.center        = refpts.center;
-
-
-
-
-% ---------------------------------------------------------------------
-function [refpts, headvol, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc] = ...
-    setOrientationDigpts(digpts, refpts, headvol, headsurf, pialsurf, labelssurf, probe, fwmodel, imgrecon, hbconc)
-
-if isempty(digpts.orientation)
-    return;
+%%%% close GUI
+hij = findobj(0,'name','Edit Probe');
+if ~isempty(hij)
+    close(hij)
 end
 
-refpts.orientation     = digpts.orientation;
-refpts.center          = digpts.center;
+%%%% replace Edit_Probe.fig if it's oversized
+if ismac()
+    P=regexp(path, ':', 'split'); %%% search path for Probe designer path
+else
+    P=regexp(path, ';', 'split'); %%% search path for Probe designer path
+end
+for i=1:size(P,2)
+    if findstr(P{1,i},'NIRS_Probe_Designer_V1')
+        CP=P{1,i}; %%% current path
+        L=findstr(CP,'NIRS_Probe_Designer_V1');
+        %%% check for path seperator
+        if ~isempty(findstr(CP,'/'))
+            PS='/';
+        elseif ~isempty(findstr(CP,'\'))
+            PS='\';
+        end
+        
+        Main_Folder=[CP PS];
+        File_Full_Path=[Main_Folder 'Edit_Probe.fig'];
+        fileInfo=dir(File_Full_Path);
+        fileSize = fileInfo.bytes;
+        if fileSize>100000  %%% check if the file is oversized
+            delete(File_Full_Path);
+            
+            SOURCE=[Main_Folder 'functions' PS 'Edit_Probe_backup.fig'];
+            DESTINATION=Main_Folder;
+            copyfile(SOURCE,DESTINATION,'f');
+            
+            %%% rename file
+            movefile([Main_Folder 'Edit_Probe_backup.fig'],[Main_Folder 'Edit_Probe.fig']);
+        end
+        break;
+    end
+end
+%%%% read meshes and optode positions
+Hh=get(atlasViewer.headsurf.handles.surf); %%% head surface mesh
+headsurf.vertices=Hh.Vertices;
+headsurf.faces=Hh.Faces;
+headsurf.normals=Hh.VertexNormals;
 
-headvol                = saveHeadvolOrient(headvol, digpts);
+Hc=get(atlasViewer.pialsurf.handles.surf); %%% head surface mesh
+cortexsurf.vertices=Hc.Vertices;
+cortexsurf.faces=Hc.Faces;
+elec=[];
+for i=1:size(atlasViewer.refpts.handles.circles,1)
+    refpts{i,1}=atlasViewer.refpts.pos(i,:);
+    elec=[elec; refpts{i,1}];
+    h1=get(atlasViewer.refpts.handles.labels(i,1));
+    refpts{i,2}=h1.String;
+    refpts{i,3}=atlasViewer.refpts.orientation;
+end
+probe=atlasViewer.probe;   %%%% probe
+[optodes,channels]=Edit_Probe(headsurf,cortexsurf,refpts,probe);
+atlasViewer.probe.optpos_reg=optodes;   
+atlasViewer.probe.mlmp=channels;   
 
-headsurf.orientation   = digpts.orientation;
-headsurf.center        = digpts.center;
 
-pialsurf.orientation   = digpts.orientation;
-pialsurf.center        = digpts.center;
+%%% update optode positions    
+for i=1:size(optodes,1)
+    set(atlasViewer.probe.handles.hOptodes(i,1),'Position',optodes(i,:));
+    set(atlasViewer.probe.handles.hOptodesCircles(i,1),'XData',optodes(i,1),'YData',optodes(i,2),'ZData',optodes(i,3));
+end
 
-labelssurf.orientation = digpts.orientation;
-labelssurf.center      = digpts.center;
-
-probe.orientation      = digpts.orientation;
-probe.center           = digpts.center;
-
-fwmodel.orientation    = digpts.orientation;
-fwmodel.center         = digpts.center;
-fwmodel.headvol.orientation    = digpts.orientation;
-
-imgrecon.orientation   = digpts.orientation;
-imgrecon.center        = digpts.center;
-
-hbconc.orientation   = refpts.orientation;
-hbconc.center        = refpts.center;
-
+%%%% update NIRS channel positions
+ml=atlasViewer.probe.ml;
+Num_Scr=atlasViewer.probe.nsrc;
+for i=1:size(ml,1)
+%     h=get(atlasViewer.probe.handles.hMeasList(i,1));
+    XData=[optodes(ml(i,1),1) optodes(ml(i,2)+Num_Scr,1)];
+    YData=[optodes(ml(i,1),2) optodes(ml(i,2)+Num_Scr,2)];
+    ZData=[optodes(ml(i,1),3) optodes(ml(i,2)+Num_Scr,3)];
+    set(atlasViewer.probe.handles.hMeasList(i,1),'XData',XData,'YData',YData,'ZData',ZData)
+end
 
 
 % ---------------------------------------------------------------------
@@ -367,10 +394,6 @@ groupSubjList = {};
 
 % To find out the subj
 [subjDirs, groupDir] = findSubjDirs();
-if isempty(groupDir)
-    [subjDirs, groupDir] = findSubjDirs('../');
-end
-
 if isempty(groupDir)
     return;
 end
@@ -481,6 +504,10 @@ handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
+
+if ~isempty(getappdata(gcf, 'zoomlevel'))
+    rmappdata(gcf, 'zoomlevel');
+end
 
 initAxesv(handles);
 
@@ -657,55 +684,6 @@ end
 
 
 
-
-% --------------------------------------------------------------------
-function fwmodel = updateGuiControls_AfterProbeRegistration(probe, fwmodel, imgrecon, labelssurf, dirnameSubj)
-
-
-if ishandles(labelssurf.handles.surf)
-    set(probe.handles.menuItemProbeToCortex, 'enable','on');
-    set(probe.handles.menuItemOverlayHbConc, 'enable','on');    
-else
-    set(probe.handles.menuItemProbeToCortex, 'enable','off');
-    set(probe.handles.menuItemOverlayHbConc, 'enable','off');    
-end
-
-if ~isempty(probe.optpos_reg)
-    enableMCGenGuiControls(fwmodel, 'on');
-else
-    enableMCGenGuiControls(fwmodel, 'off');
-end
-
-if ~isempty(probe.ml)
-    if isempty(fwmodel.Adot) 
-        if ~isempty(fwmodel.fluenceProfFnames)
-            enableDisableMCoutputGraphics(fwmodel, 'on');
-        else
-            enableDisableMCoutputGraphics(fwmodel, 'off');
-        end    
-        enableImgReconGen(imgrecon, 'off');
-        enableImgReconDisplay(imgrecon, 'off');
-    else
-        if size(probe.ml,1) ~= size(fwmodel.Adot,1)
-            fwmodel.Adot = [];
-            onoff = 'off';
-        else
-            onoff = 'on';            
-        end
-        enableDisableMCoutputGraphics(fwmodel, onoff);
-        enableImgReconGen(imgrecon, onoff);
-        enableImgReconDisplay(imgrecon, onoff);
-    end
-else
-    enableDisableMCoutputGraphics(fwmodel, 'off');
-    enableImgReconGen(imgrecon, 'off');
-    enableImgReconDisplay(imgrecon, 'off');
-end
-
-
-
-
-
 % --------------------------------------------------------------------
 function probe = probeRegisterSpringsMethod(probe,headvol,refpts)
 
@@ -757,11 +735,22 @@ fwmodel      = atlasViewer.fwmodel;
 imgrecon     = atlasViewer.imgrecon;
 labelssurf   = atlasViewer.labelssurf;
 
+% for displayAxesv whichever head object (headsurf or headvol) 
+% is not empty will work. 
+if ~headsurf.isempty(headsurf)
+    headobj = headsurf;
+else
+    headobj = headvol;
+end
+
 if isempty(probe.optpos)
     menu('No probe has been loaded or created. Use the SDgui to make or load a probe','ok');
     probe = resetProbe(probe);
     return;
 end
+
+refpts.eeg_system.selected = '10-5';
+refpts = set_eeg_active_pts(refpts, [], false);
 
 % Finish registration
 if isempty(probe.sl)
@@ -769,12 +758,16 @@ if isempty(probe.sl)
     % Register probe by simply pulling (or pushing) optodes toward surface
     % toward (or away from) center of head.
     method = 'digpts';
-    probe = pullProbeToHeadsurf(probe,headvol);
+    probe = pullProbeToHeadsurf(probe,headobj);
     probe.hOptodesIdx = 1;
    
 else
     
     % Register probe using springs based method
+    if headvol.isempty(headvol)
+        menu('Error registering probe using spring relaxation. Headvol object is empty','OK');
+        return;
+    end
     method = 'springs';
     probe = probeRegisterSpringsMethod(probe,headvol,refpts);
   
@@ -791,13 +784,13 @@ probe = viewProbe(probe, 'registered');
 % Draw measurement list and save handle
 probe = findMeasMidPts(probe);
 
-fwmodel = updateGuiControls_AfterProbeRegistration(probe, fwmodel, imgrecon, labelssurf, dirnameSubj);
+fwmodel = updateGuiControls_AfterProbeRegistration(probe, fwmodel, imgrecon, labelssurf);
 
 probe.hOptodesIdx = 1; 
 probe = setProbeDisplay(probe, headsurf, method);
 
 atlasViewer.probe       = probe;
-atlasViewer.fwmodel = fwmodel;
+atlasViewer.fwmodel     = fwmodel;
 atlasViewer.labelssurf  = labelssurf;
 
 
@@ -911,253 +904,6 @@ probe.hideDummyOpts = hideDummyOpts;
 probe = setProbeDisplay(probe,headsurf);
 
 atlasViewer.probe = probe;
-
-
-
-% --------------------------------------------------------------------
-function dirname = getSubjDir(arg)
-
-dirname = -1;
-if length(arg) > 1
-    dirname = arg{1};
-else
-    
-    % Rules fr determining if current folder is a subject folder    
-    % Check for presence of atlasviewer or homer2 files 
-    % in the current folder
-    
-    % 1. Check for presense of ./anatomical/headsurf.mesh
-    dirname = [];
-    if exist([pwd, '/anatomical'], 'dir')
-        files = dir([pwd, '/anatomical/headsurf.mesh']);
-        if ~isempty(files)
-            dirname = pwd;
-        end
-    end
-    
-    % 2. Check for presense of ./anatomical/headsurf.mesh
-    if exist([pwd, '/fw'], 'dir')
-        files = dir([pwd, '/fw/fw_all.*']);
-        if ~isempty(files)
-            dirname = pwd;
-        end
-        files = dir([pwd, '/fw/headvol.vox']);
-        if ~isempty(files)
-            dirname = pwd;
-        end
-    end
-    
-    % 3. Check for presense of digpts.txt
-    if exist([pwd, '/digpts.txt'], 'file')
-        dirname = pwd;
-    end
-    
-    % 4. Check for presense of atlasViewer.mat
-    if exist([pwd, '/atlasViewer.mat'], 'file')
-        dirname = pwd;
-    end
-    
-    % 5. Check for presense of groupResults.mat
-    if exist([pwd, '/groupResults.mat'], 'file')
-        dirname = pwd;
-    end
-        
-    % 6. Check for presense of SD or .nirs files
-    files = dir([pwd, '/*.SD']);
-    if ~isempty(files)
-        dirname = pwd;
-    end
-    
-    % 7. Check for presense of SD or .nirs files
-    files = dir([pwd, '/*.nirs']);
-    if ~isempty(files)
-        dirname = pwd;
-    end
-    
-    % After checking all the above for insications of subject folder
-    % see if dirname is etill empty. If it is ask user for subject dir. 
-    if isempty(dirname)
-        pause(.1);
-        dirname = uigetdir(pwd, 'Please select subject folder');
-        if dirname==0
-            dirname = pwd;
-        end
-    end
-    
-end
-
-if isempty(dirname) | dirname==0
-    return;
-end
-
-cd(dirname);
-
-dirname(dirname=='\') = '/';
-
-if dirname(end) ~= '/'
-    dirname(end+1) = '/';
-end
-
-
-
-% --------------------------------------------------------------------
-function dirname = getAtlasDir(arg)
-
-if ~exist('arg','var')
-    arg={};
-end
-
-dirname = '';
-    
-% First check argument for existence of atlas dir
-if length(arg) > 2
-    dirname = arg{2};
-end
-
-% No argument supplied or argument supplied but directory doen't exist
-% In this case try finding default using the search paths if we are in
-% an IDE.
-if isempty(dirname) | ~exist(dirname,'file')
-
-    % First search for atlas folder in the executable application 
-    % installation folder even if you're working in the matlab IDE. 
-    dirname = getAppDir(1);
-    if exist([dirname, 'Colin/anatomical/headsurf.mesh'],'file') & ...
-       (exist([dirname, 'Colin/anatomical/headvol.vox'],'file') | ...
-        exist([dirname, 'Colin/anatomical/headvol.vox.gz'],'file'))
-        dirname = [dirname, 'Colin'];
-        return;
-    else
-        dirname = '';
-    end
-       
-    % If we weren't able to get atlas path from installation folder, then try finding 
-    % default dir or have user select it.
-    if isempty(dirname)
-           
-        % Try finding atlas in the search paths and if that fails ask
-        % user to provide a atlas path.
-        dirname = ffpath('Colin/anatomical/headsurf.mesh');
-        if isempty(dirname)
-
-            fprintf('Ask user for atlas dirname.\n');
-            dirname = selectAtlasDir(dirname);
-            
-        % Otherwise success! (Found default atlas dir). Strip path of trailing
-        % anatomical/headsurf.mesh to get at the directory.
-        elseif ~isempty(dirname)
-            
-            dirname = [dirname, '/Colin'];
-            fprintf('Found atlas dirname: %s\n', dirname);
-            
-        end
-        
-    end
-    
-% Argument supplied, dir exists but doesn't contain anatomical dir. It's an invitation
-% for the user to pick the atlas from a list of atlases. Supposedly dirname contains
-% a database of atlases.
-elseif exist(dirname,'file') & ~exist([dirname filesep 'anatomical'],'file')
-
-    if ~exist([dirname filesep 'Colin'],'file') | ~exist([dirname filesep 'Colin' filesep 'anatomical'],'file')        
-        dirname = selectAtlasDir(dirname);
-
-    % This is the default. If the root atlas directory exists and contain a valid Colin
-    % atlas directory
-    elseif exist([dirname filesep 'Colin'],'file')
-        dirname = [dirname filesep 'Colin'];
-    end
-    
-end
-
-% Check if we still have no atlas dir and warn user if that's the case
-if isempty(dirname) | dirname==0
-    menu('Warning: Couldn''t find default atlas directory.','OK');
-    dirname = '';
-    return;
-end
-
-dirname(dirname=='\') = '/';
-
-% Add trailing file separator to dirname if there is none
-if dirname(end) ~= '/' 
-    dirname(end+1) = '/';
-end
-
-
-
-
-% --------------------------------------------------------------------
-function dirname = selectAtlasDir(dirname)
-
-if ~exist('dirname','var') | ~exist(dirname,'dir')
-    dirname=pwd;
-end
-if exist(dirname,'file') & exist([dirname, '/anatomical'],'dir')
-    if exist([dirname, '/anatomical/headsurf.mesh'],'file') | exist([dirname, '/anatomical/headvol.vox'],'file')
-        return;
-    end
-end
-    
-while 1
-    dirname = uigetdir(dirname,'Atlas directory not found. Please choose atlas directory');
-    if dirname==0
-        break;
-    end
-    if exist(dirname,'dir') & (exist([dirname, '/anatomical'],'dir') | ...
-       (exist([dirname, '/mri'],'dir') & exist([dirname, '/surf'],'dir')))
-        break;
-    else
-        q = menu('Selected directory is not a valid atlas directory. Please select valid atlas directory or cancel to avoid selecting','Select','Cancel');
-        if q==1
-            continue;
-        elseif q==2
-            dirname = [];
-            break;
-        end
-    end
-end
-
-
-
-
-% --------------------------------------------------------------------
-function pushbuttonZoomIn_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonZoomIn)
-        if hObject==axesv(ii).handles.pushbuttonZoomIn
-            ax=axesv(ii);
-            break;
-        end
-    end
-end
-
-camzoom(ax.handles.axesSurfDisplay, ax.zoomincr);
-atlasViewer.axesv(ii) = ax;
-
-
-
-
-% --------------------------------------------------------------------
-function pushbuttonZoomOut_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonZoomOut)
-        if hObject==axesv(ii).handles.pushbuttonZoomOut
-            ax=axesv(ii);
-            break;
-        end
-    end
-end
-
-camzoom(ax.handles.axesSurfDisplay, 1/ax.zoomincr);
-atlasViewer.axesv(ii) = ax;
-
 
 
 
@@ -1341,10 +1087,15 @@ imgrecon     = atlasViewer.imgrecon;
 digpts       = atlasViewer.digpts;
 axesv        = atlasViewer.axesv;
 
-[filename pathname] = uigetfile([dirnameProbe '*.*'],'Import subject probe');
+[filename, pathname] = uigetfile([dirnameProbe '*.*'],'Import subject probe');
 if filename==0
     return;
 end
+
+% Make sure we are using all available eeg points. Select locally so that
+% we don't change anything in refpts
+refpts.eeg_system.selected = '10-5';
+refpts = set_eeg_active_pts(refpts, [], false);
 
 % New probe means resetting probe, anatomical labels and sensitivity profile
 probe       = resetProbe(probe);
@@ -1528,9 +1279,7 @@ labelssurf.mesh.vertices = xform_apply(labelssurf.mesh.vertices, headvol.T_2mc);
 labelssurf.center        = xform_apply(labelssurf.center, headvol.T_2mc);
 
 % move ref points to monte carlo space 
-refpts.pos = xform_apply(refpts.pos, headvol.T_2mc);
-refpts.cortexProjection.pos = xform_apply(refpts.cortexProjection.pos, headvol.T_2mc);
-refpts.center = xform_apply(refpts.center, headvol.T_2mc);
+refpts = xform_apply_Refpts(refpts, headvol.T_2mc);
 
 % The fwmodel meshes are inherited from pial and head surf at init time. Therefore they are 
 % in original unregistered volume space, not MC space. Therefore we have to transform it to 
@@ -1572,8 +1321,7 @@ labelssurf     = displayLabelssurf(labelssurf);
 refpts         = displayRefpts(refpts);
 digpts         = displayDigpts(digpts);
 probe          = displayProbe(probe, headsurf);
-
-axesv(1) = displayAxesv(axesv(1), headsurf, initDigpts());
+axesv(1) = displayAxesv(axesv(1), headsurf, headvol, initDigpts());
 
 set(axesv(1).handles.axesSurfDisplay,{'xlimmode','ylimmode','zlimmode'},{'manual','manual','manual'});
 
@@ -1740,6 +1488,9 @@ T_vol2mc    = atlasViewer.headvol.T_2mc;
 try 
     if isempty(eventdata) | strcmp(eventdata.EventName,'Action')
         fwmodel = genSensitivityProfile(fwmodel,probe,headvol,pialsurf,headsurf,dirnameSubj);
+        if isempty(fwmodel.Adot)
+            return;
+        end
         imgrecon = resetImgRecon(imgrecon);
     end 
 catch ME
@@ -1947,77 +1698,67 @@ fs2viewer = atlasViewer.fs2viewer;
 dirnameSubj = atlasViewer.dirnameSubj;
 dirnameAtlas = atlasViewer.dirnameAtlas;
 
-if exist([dirnameSubj, '/mri'], 'dir') & exist([dirnameSubj, '/surf'], 'dir')
-
-    fs2viewer = convertFs2Viewer(fs2viewer, dirnameSubj);
-
-else
-    
-    d = dir([dirnameSubj '/*']);
-    for ii=1:length(d)
-        if ~d(ii).isdir
-            continue;
-        end        
-        fs2viewer = convertFs2Viewer(fs2viewer, [dirnameSubj, '/', d(ii).name]);
-    end
-    
+[fs2viewer, status] = convertFs2Viewer(fs2viewer, dirnameSubj);
+if sum(status)>0
+    return;
 end
-
 atlasViewer.fs2viewer = fs2viewer;
 
 % Reload subject with it's own, newly-generated anatomical files
 AtlasViewerGUI(dirnameSubj, dirnameAtlas, 'userargs');
 
+% Allow user to select reference points
+q = menu('Select basic reference points, Nz, Iz, LPA, RPA, Cz, for this anatomy?', 'OK','Cancel');
+if q==1
+    menuItemFindRefpts_Callback(hObject, eventdata, handles);
+end
 
 
 
 % --------------------------------------------------------------------
-function menuItemCalculateRefpts_Callback(hObject, eventdata, handles)
+function menuItemShowRefpts_Callback(hObject, eventdata, handles)
 global atlasViewer
 
-refpts        = atlasViewer.refpts;
-headvol       = atlasViewer.headvol;
-axesv         = atlasViewer.axesv;
-dirnameSubj   = atlasViewer.dirnameSubj;
-digpts        = atlasViewer.digpts;
 
+eeg_system_labels = {};
 switch(get(hObject, 'tag'))
-    case 'menuItem10_20'
-        eeg_system = '10-20';
-    case 'menuItem10_10'
-        eeg_system = '10-10';
-    case 'menuItem10_5'
-        eeg_system = '10-5';
-    case 'menuItem10_2_5'
-        eeg_system = '10-2.5';
-    case 'menuItem10_1'
-        eeg_system = '10-1';
-    otherwise
-        eeg_system = '10-20';
+    case 'menuItemShow10_20'
+        atlasViewer.refpts.eeg_system.selected = '10-20';
+        set_eeg_curve_select(atlasViewer.refpts);
+    case 'menuItemShow10_10'
+        atlasViewer.refpts.eeg_system.selected = '10-10';
+        set_eeg_curve_select(atlasViewer.refpts);
+    case 'menuItemShow10_5'
+        atlasViewer.refpts.eeg_system.selected = '10-5';
+        set_eeg_curve_select(atlasViewer.refpts);
+    case 'menuItemShow10_2_5'
+        atlasViewer.refpts.eeg_system.selected = '10-2.5';
+    case 'menuItemShow10_1'
+        atlasViewer.refpts.eeg_system.selected = '10-1';
+    case 'menuItemShowSelectedCurves10_20'
+                atlasViewer.refpts.eeg_system.selected = 'selected_curves_10_20';
+        if ~ishandles(atlasViewer.refpts.handles.SelectEEGCurvesGUI)
+            atlasViewer.refpts.handles.SelectEEGCurvesGUI = SelectEEGCurvesGUI();
+        end
+    case 'menuItemShowSelectedCurves10_10'
+        atlasViewer.refpts.eeg_system.selected = 'selected_curves_10_10';
+        if ~ishandles(atlasViewer.refpts.handles.SelectEEGCurvesGUI)
+            atlasViewer.refpts.handles.SelectEEGCurvesGUI = SelectEEGCurvesGUI();
+        end
+    case 'menuItemShowSelectedCurves10_5'
+        atlasViewer.refpts.eeg_system.selected = 'selected_curves_10_5';
+        if ~ishandles(atlasViewer.refpts.handles.SelectEEGCurvesGUI)
+            atlasViewer.refpts.handles.SelectEEGCurvesGUI = SelectEEGCurvesGUI();
+        end
 end
 
-[nz,iz,rpa,lpa,cz] = getLandmarks(refpts);
-if isempty(nz) | isempty(iz) | isempty(lpa) | isempty(rpa) | isempty(cz)
-    menu(sprintf('One or more landmarks are missing - unable to calculate %s pts.', eeg_system),'OK');
-    set(hObject,'enable','off');
-    return;
-end
+atlasViewer.refpts = setRefptsMenuItemSelection(atlasViewer.refpts);
+atlasViewer.refpts = set_eeg_active_pts(atlasViewer.refpts);
 
-%if ~isempty(headvol.img) % change the order of these two so it does surface first
-%    refpts = calcRefpts(refpts, headvol);
-if isfield(atlasViewer,'headsurf')
-    [refpts, ~, err]  = calcRefpts(refpts, atlasViewer.headvol, {}, eeg_system);
-    % Need to transform refpts from surface space to volume space
-    % also calcRefpts.m saves the refpts to a file, but it doesn't
-    % update the refpts2vol.txt file
-end
+atlasViewer.refpts = displayRefpts(atlasViewer.refpts);
 
-if ~err
-    refpts = displayRefpts(refpts);    
-    saveRefpts(refpts, headvol.pathname, headvol.T_2mc, 'overwrite');
-    atlasViewer.refpts = refpts;
-else
-    menu('Failed to calculate ref pts because of missing landmarks','OK');
+if ishandles(atlasViewer.refpts.handles.SelectEEGCurvesGUI)
+    figure(atlasViewer.refpts.handles.SelectEEGCurvesGUI);
 end
 
 
@@ -2054,8 +1795,13 @@ cm = colormap;
 clim = caxis;
 
 hf = figure;
-
 hAxes = copyobj(axesv(1).handles.axesSurfDisplay, hf);
+axis off
+axis equal
+axis vis3d
+set(gca, 'unit','normalized');
+p = get(gca, 'position');
+set(gca, 'unit','normalized', 'position', [.20, .30, .40, .40]);
 
 % colormap is a propery of figure not axes. Since we don't want to 
 % copy the whole figure which is the gui but only the axes, we need to 
@@ -2176,222 +1922,11 @@ end
 
 
 % --------------------------------------------------------------------
-function pushbuttonSaveRefpts_Callback(hObject, eventdata, handles)
-global atlasViewer;
-
-refpts       = atlasViewer.refpts;
-headsurf     = atlasViewer.headsurf;
-pialsurf     = atlasViewer.pialsurf;
-axesv        = atlasViewer.axesv;
-digpts       = atlasViewer.digpts;
-fwmodel      = atlasViewer.fwmodel;
-dirnameSubj  = atlasViewer.dirnameSubj;
-dirnameAtlas = atlasViewer.dirnameAtlas;
-T_vol2mc     = atlasViewer.headvol.T_2mc;
-hGroupList   = atlasViewer.handles.hGroupList;
-
-cmd = get(hObject,'String');
-
-if strcmp(cmd, 'Save Ref Pts')
-    
-    if all(refpts.handles.selected==-1)
-        return;
-    end
-       
-    % However the head mesh we found the ref points on was also transformed
-    % by headvol.T_2ras to view left/right correctly. If it's not identity 
-    % we need to unapply it to the ref points - which is done inside
-    % saveRefpts, when we pass it a viewing tranformation in the volume.    
-    refpts = saveRefpts(refpts, headsurf.pathname, T_vol2mc, 'overwrite');
-    refpts = getRefpts(refpts, dirnameSubj);
-    refpts = displayRefpts(refpts, atlasViewer.axesv(1).handles.axesSurfDisplay );    
-    if length(refpts.labels)>=5
-        set(refpts.handles.menuItemCalculateRefpts,'enable','on');
-        if ~isempty(digpts.refpts.pos)
-            set(digpts.handles.menuItemRegisterAtlasToDigpts,'enable','on');
-        end
-    else
-        set(refpts.handles.menuItemCalculateRefpts,'enable','off');
-    end
-    
-    if length(axesv)>1
-        if ishandles(axesv(2).handles.axesSurfDisplay)
-            hp = get(axesv(2).handles.axesSurfDisplay,'parent');
-            delete(hp);
-        end
-    end
-    AtlasViewerGUI(dirnameSubj, dirnameAtlas, fwmodel.mc_exepath, hGroupList, 'userargs');
-    
-    % Make sure to exit the function here after restarting AtlasViewerGUI 
-    % Otherwise we overwrite refpts after initializing them. 
-    return;
-    
-else
-    
-    labels{1} = cmd(6:end);
-    [refpts, currentPt] = updateRefpts(refpts, headsurf, labels, atlasViewer.axesv(2).handles.axesSurfDisplay);
-    disp(sprintf('%s: %s', labels{1}, num2str(currentPt)));
-    
-end
-
-atlasViewer.refpts = refpts;
-
-
-
-
-% --------------------------------------------------------------------
-function findRefptsGUI_DeleteFcn(hObject, eventdata, handles)
-global atlasViewer
-atlasViewer.axesv(2).handles.axesSurfDisplay=-1;
-atlasViewer.refpts.handles.selected(:)=-1;
-
-
-
-% --------------------------------------------------------------------
 function menuItemFindRefpts_Callback(hObject, eventdata, handles)
-global atlasViewer
 
-axesv = atlasViewer.axesv;
-headsurf = atlasViewer.headsurf;
-headvol = atlasViewer.headvol;
-refpts = atlasViewer.refpts;
-
-if length(axesv)==2
-    if ishandles(axesv(2).handles.axesSurfDisplay)
-        return;
-    end
-end
-
-hf = figure('name','Find Ref Points','units','normalized','position',[.2,.1,.5,.7], 'menubar','none',...
-            'toolbar','figure','color',[.2,.2,.2], 'deletefcn',@findRefptsGUI_DeleteFcn);
-
-% Display tip for user about how to know which side is left and right if no
-% lpa or rpa exist
-if (isempty(find(strcmpi(atlasViewer.refpts.labels, 'lpa'))) & isempty(find(strcmpi(atlasViewer.refpts.labels, 'rpa'))))
-    msg={};
-    msg{1} = sprintf('TIP: If original volume was processed by Freesurfer,\n');
-    msg{2} = sprintf('use mri_info utility to get the 3 letter orientation code to\n');
-    msg{3} = sprintf('determine which side is left and which is right on the\n');
-    msg{4} = sprintf('head - this will tell you the locations of LPA and RPA.\n');
-    msg = upper([(msg{:})]);
-    q = menu(msg, 'OK');    
-end
-
-handles2.axesSurfDisplay = axes;
-set(handles2.axesSurfDisplay, {'xlimmode','ylimmode','zlimmode'}, {'manual','manual','manual'});
-
-set(handles2.axesSurfDisplay,'xlim')
-set(handles2.axesSurfDisplay,'units','normalized','position',[.10 .30 .80 .65 ]);
-handles2.panelRotateZoomAxes = uipanel(hf,'units','normalized','position',[.05,.01,.80,.20]);
-handles2.pushbuttonZoomIn = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Zoom In',...
-              'units','normalized', 'tag','pushbuttonZoomIn', 'position',[.70,.60,.10,.15], ...
-              'callback',@pushbuttonZoomIn_Callback);
-handles2.pushbuttonZoomOut = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Zoom Out',...
-              'units','normalized', 'tag','pushbuttonZoomOut', 'position',[.70,.40,.10,.15], ...
-              'callback',@pushbuttonZoomOut_Callback);
-handles2.pushbuttonSaveRefpts = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save Ref Pts',...
-              'units','normalized', 'tag','pushbuttonSaveRefpts', 'position',[.70,.10,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.pushbuttonSaveNz = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save Nz',...
-              'units','normalized', 'tag','pushbutton', 'position',[.85,.82,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.pushbuttonSaveIz = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save Iz',...
-              'units','normalized', 'tag','pushbutton', 'position',[.85,.62,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.pushbuttonSaveLPA = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save LPA',...
-              'units','normalized', 'tag','pushbutton', 'position',[.85,.42,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.pushbuttonSaveRPA = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save RPA',...
-              'units','normalized', 'tag','pushbutton', 'position',[.85,.22,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.pushbuttonSaveCz = ...
-    uicontrol('parent',handles2.panelRotateZoomAxes, 'style','pushbutton', 'string','Save Cz',...
-              'units','normalized', 'tag','pushbutton', 'position',[.85,.02,.10,.15], ...
-              'callback',@pushbuttonSaveRefpts_Callback);
-handles2.menuItemLight1=[];
-handles2.menuItemLight2=[];
-handles2.menuItemLight3=[];
-handles2.menuItemLight4=[];
-handles2.menuItemLight5=[];
-handles2.menuItemLight6=[];
-handles2.menuItemLight7=[];
-handles2.menuItemLight8=[];
-handles2.menuItemViewOrigin = handles.menuItemViewOrigin;
-
-axesv(2) = initAxesv(handles2,1);
-headsurf.handles.surf=[];
-% This code is a workaround for a MATLAB bug introduced in version R2014b (8.4)
-% and fixed (mostly fixed) in R2016a (9.0.1)
-matlabVerNewGraphics = '8.4';
-if verLessThan('matlab','9.0') & verGreaterThanOrEqual('matlab', matlabVerNewGraphics)
-    menu(sprintf(['Please NOTE that "Find Reference Points" uses a MATLAB graphics feature which has\n', ...
-        'a Matlab bug in versions R2014b (8.4) - R2015b (8.6). The bug occasionally causes the \n', ...
-        'the datacursor to attach to vertices on the the hidden side of the graphics object instead\n', ...
-        'of the one selected. This can be detected by observing how the black square data cursor moves\n', ...
-        'when rotating the head. If the datacursor moves ''with'' the rotating head then it attahed correstly\n', ...
-        'If the datacursor moves in the opposite direction then it attahed to the hidden side of the head and\n', ...
-        'the vertex should be reselected.                                                                  \n\n', ...
-        'Please Note: This issue was fixed in R2016a (9.0). Also this issue doesn''t exist in versions prior\n', ...
-        'to R2014b (8.4), for example R2013b. Consider using an altrnative Matlab release...                ']), 'OK');
-    q = menu(sprintf(['Normally Matlab''s patch rendering would be used to draw the head surface. As a workaround to the\n', ...
-        'previously described bug, choose an alternative (to patch) rendering that works best for you.\n']), 'Point Cloud','Surf Mesh');
-    if q==1        
-        headvol = displayHeadvol(headvol, handles2.axesSurfDisplay);
-    else
-        % Display head surface using matlab's surf rather than patch to
-        % avoid bug describes in the menu note above.
-        headsurf = displayHeadsurf(headsurf, handles2.axesSurfDisplay, 'surf');
-    end
-else
-    headsurf = displayHeadsurf(headsurf, handles2.axesSurfDisplay);
-    set(headsurf.handles.surf,'facealpha',.8);
-    if verGreaterThanOrEqual('matlab',matlabVerNewGraphics)
-        set(headsurf.handles.surf, 'pickableparts','visible','facealpha',1.0);
-    end
-end
-
-axesv(2) = displayAxesv(axesv(2), headsurf, initDigpts());
-
-% Before user starts picking points display the location of any existing
-% landmarks.
-[~,~,~,~,~,r] = getLandmarks(refpts);
-if ~isempty(r.pos)
-    if leftRightFlipped(headsurf)
-        axes_order=[2 1 3];
-    else
-        axes_order=[1 2 3];
-    end
-    headsurf.currentPt = [r.pos(:,axes_order(1)), r.pos(:,axes_order(2)), r.pos(:,axes_order(3))];
-    refpts = updateRefpts(refpts, headsurf, r.labels, axesv(2).handles.axesSurfDisplay);
-end
-
-% Save objects 
-atlasViewer.axesv = axesv;
-atlasViewer.refpts = refpts;
-
-hd = datacursormode(hf);
-set(hd,'UpdateFcn',@headsurfUpdateFcn,'SnapToDataVertex','on');
-datacursormode on
+FindRefptsGUI();
 
 
-
-% ---------------------------------------------------------------------
-function txt = headsurfUpdateFcn(o,e)
-global atlasViewer;
-
-% Instead of getting position with "p = get(e,'position')", we get it 
-% from with "p = e.Position". The former isn't compatible with matlab
-% version beyond 2014a. 
-p = e.Position;
-atlasViewer.headsurf.currentPt = p;
-txt = sprintf('%0.1f, %0.1f, %0.1f', p(1), p(2), p(3));
 
 
 
@@ -2405,6 +1940,9 @@ plotProbePlacementVariation();
 % --------------------------------------------------------------------
 function menuItemRegisterAtlasToHeadSize_Callback(hObject, eventdata, handles)
 global atlasViewer
+
+dirnameSubj  = atlasViewer.dirnameSubj;
+digpts       = atlasViewer.digpts;
 
 prompt = {'Head Circumference (cm):','Iz to Nz (cm):','RPA to LPA (cm):'};
 dlg_title = 'Input Head Size';
@@ -2429,29 +1967,21 @@ c = x(3); % Cz axis
 
 r10p = 18*3.14159/180;
 
-Cz = [0 0 c];
-RPA = [a*cos(r10p) 0 -c*sin(r10p)];
-LPA = [-a*cos(r10p) 0 -c*sin(r10p)];
-Nz = [0 b*cos(r10p) -c*sin(r10p)];
-Iz = [0 -b*cos(r10p) -c*sin(r10p)];
+Cz  = [0,            0,            c];
+RPA = [a*cos(r10p),  0,           -c*sin(r10p)];
+LPA = [-a*cos(r10p), 0,           -c*sin(r10p)];
+Nz  = [0,            b*cos(r10p), -c*sin(r10p)];
+Iz  = [0,           -b*cos(r10p), -c*sin(r10p)];
 
-atlasViewer.digpts.refpts.pos    = [Nz; Iz; RPA; LPA; Cz];
-atlasViewer.digpts.refpts.labels = {'nz', 'iz', 'rpa', 'lpa', 'cz'};
+digpts.refpts.pos    = [Nz; Iz; RPA; LPA; Cz];
+digpts.refpts.labels = {'nz', 'iz', 'rpa', 'lpa', 'cz'};
+saveDigpts(digpts, 'overwrite');
+digpts = getDigpts(digpts, dirnameSubj);
 
-% fid = fopen('digpts.txt','wt');
-% fprintf(fid,'nz: %.2f %.2f %.2f\n',Nz);
-% fprintf(fid,'iz: %.2f %.2f %.2f\n',Iz);
-% fprintf(fid,'rpa: %.2f %.2f %.2f\n',RPA);
-% fprintf(fid,'lpa: %.2f %.2f %.2f\n',LPA);
-% fprintf(fid,'cz: %.2f %.2f %.2f\n',Cz);
-% fclose(fid);
-
-dirnameSubj  = atlasViewer.dirnameSubj;
-if exist([dirnameSubj 'viewer/headvol.vox'],'file')
-    delete([dirnameSubj 'viewer/headvol.vox']);
-end
+atlasViewer.digpts = digpts;
 
 menuItemRegisterAtlasToDigpts_Callback(hObject, eventdata, handles)
+
 
 
 
@@ -2586,13 +2116,11 @@ else
 end
 T_headvol2mc       = headvol.T_2mc;
 
-if ~ishandle(hObject)
-    if hObject>0 & hObject<5
-        option = hObject;
-    end
+if isempty(hObject)
+    option = 2;
 else
     option = menu('Select projection type', 'Curr Subject Optodes','Curr Subject Channels', ...
-                  'Group Optodes','Group Channels','Cancel');
+                  'Group Mean: Optodes','Group Mean: Channels','Cancel');
 end
 
 % Project optodes to labeled cortex
@@ -2655,7 +2183,9 @@ if isempty(ptsProj)
     return;
 end
 
-probe = clearProbeProjection(probe, iTbl);
+if ishandle(hObject)
+    probe = clearProbeProjection(probe, iTbl);
+end
 
 % ptsProj_cortex is in viewer space. To get back to MNI coordinates take the
 % inverse of the tranformation from mni to viewer space.
@@ -2669,7 +2199,7 @@ end
 hProjectionPts = [];
 iFaces = [];
 if eventdata == true
-    pts = prepPtsStructForViewing(ptsProj_cortex, size(ptsProj_cortex,1), 'numbers','k',11);
+    pts = prepPtsStructForViewing(ptsProj_cortex, size(ptsProj_cortex,1), 'probenum','k',11);
     hProjectionPts = viewPts(pts, attractPt,  0);
     set(hProjectionPts,'visible','off');
     
@@ -2790,7 +2320,7 @@ if ~isempty(iDirs)
             fprintf('Projecting ref points to cortex for subject: %s\n', d(ii).name);
             pause(2);
             refpts = menuItemProjectRefptsToCortex();
-            refpts = saveRefpts(refpts, [dirnameSubj, d(ii).name], T_vol2mc);
+            refpts = saveRefpts(refpts, T_vol2mc);
         end
         
     elseif q==2
@@ -2836,7 +2366,7 @@ ptsProj_cortex = ProjectionBI(ptsProj, vertices);
 hCortexProjection = [];
 iFaces = [];
 
-pts = prepPtsStructForViewing(ptsProj_cortex, size(ptsProj_cortex,1), 'numbers','k',11);
+pts = prepPtsStructForViewing(ptsProj_cortex, size(ptsProj_cortex,1), 'probenum','k',11);
 hCortexProjection = viewPts(pts, attractPt,  0);
 set(hCortexProjection,'visible','off');
 
@@ -2873,27 +2403,6 @@ refpts.cortexProjection.iVertices = iP;
 refpts.cortexProjection.pos = pialsurf.mesh.vertices(iP,:);
 
 atlasViewer.refpts = refpts;
-
-
-
-
-% -------------------------------------------------------------------
-function menuItemViewOrigin_Callback(hObject, eventdata, handles)
-global atlasViewer
-
-axesv = atlasViewer.axesv; 
-hAxes = axesv.handles.axesSurfDisplay;
-
-onoff = get(hObject,'checked');
-if strcmp(onoff, 'on')
-    set(hObject, 'checked','off');
-elseif strcmp(onoff, 'off')
-    set(hObject, 'checked','on');
-end
-
-viewOrigin(hAxes, 'donotredraw');
-
-
 
 
 % --------------------------------------------------------------------
@@ -3140,11 +2649,11 @@ labelssurf   = atlasViewer.labelssurf;
 refpts       = atlasViewer.refpts;
 dirnameSubj  = atlasViewer.dirnameSubj;
 
-saveHeadvol(headvol, dirnameSubj);
-saveHeadsurf(headsurf, dirnameSubj, headvol.T_2mc);
-savePialsurf(pialsurf, dirnameSubj, headvol.T_2mc);
-saveLabelssurf(labelssurf, dirnameSubj, headvol.T_2mc);
-saveRefpts(refpts, dirnameSubj, headvol.T_2mc);
+saveHeadvol(headvol);
+saveHeadsurf(headsurf, headvol.T_2mc);
+savePialsurf(pialsurf, headvol.T_2mc);
+saveLabelssurf(labelssurf, headvol.T_2mc);
+saveRefpts(refpts, headvol.T_2mc);
 
 
 
@@ -3160,46 +2669,9 @@ T_vol2mc = headvol.T_2mc;
 
 dirnameSubj = atlasViewer.dirnameSubj;
 
-pathnm = [headvol.pathname, 'fw/'];
-
-% Check if there's a fluence profile which already exists
-
-for ii=1:length(fwmodel.fluenceProfFnames)
-    if ~exist(fwmodel.fluenceProfFnames{ii}, 'file')
-        fwmodel.fluenceProfFnames={};
-        break;
-    end
-end
-if isempty(fwmodel.fluenceProfFnames)
-    pathnm = getAppDir(1);
-    fluenceProfFnames = dir([pathnm, 'fluenceProf*.mat']);
-    for ii=1:length(fluenceProfFnames)
-        foo = loadFluenceProf([pathnm, fluenceProfFnames(ii).name], 'index');
-        fwmodel.fluenceProfFnames{foo.index} = [pathnm, fluenceProfFnames(ii).name];
-    end
-end
-if isempty(fwmodel.fluenceProfFnames)
-    fluenceProfFnames = dir([pathnm, 'fluenceProf*.mat']);
-    while isempty(fluenceProfFnames)
-        q = menu('No profile associated with this anatomy. Do you want to find the folder that contains profiles?','Yes','No');
-        if q==2
-            return;
-        else
-            pause(.1);
-            pathnm = uigetdir(dirnameSubj, 'Search for the fluence profile folder.');
-        end
-        if pathnm(end)~='/' && pathnm(end)~='\'
-            pathnm(end+1)='/';
-        end
-        fluenceProfFnames = dir([pathnm, 'fluenceProf*.mat']);
-    end
-    
-    for ii=1:length(fluenceProfFnames)
-        foo = loadFluenceProf([pathnm, fluenceProfFnames(ii).name], 'index');
-        fwmodel.fluenceProfFnames{foo.index} = [pathnm, fluenceProfFnames(ii).name];
-    end
-end
-
+% Since we're generating new fluence for what is in effect a probe covering
+% the whole head, the sensitivity from that should be regenerated. 
+fwmodel.Adot = [];
 fwmodel = genSensitivityProfileFromFluenceProf(fwmodel, probe, T_vol2mc, dirnameSubj);
 
 atlasViewer.fwmodel = fwmodel;
@@ -3578,7 +3050,7 @@ if isempty(hbconc)
 end
 
 % Project channels to cortex and save projecttion points in probe
-probe = menuItemProjectProbeToCortex_Callback(2, false);
+probe = menuItemProjectProbeToCortex_Callback([], false);
 if isempty(probe.ptsProj_cortex)
     return;
 end
@@ -3682,4 +3154,414 @@ global atlasViewer
 probe = atlasViewer.probe;
 probe = clearProbeProjection(probe);
 atlasViewer.probe = probe;
+
+
+
+% --------------------------------------------------------------------
+function menuItemResetViewerState_Callback(hObject, eventdata, handles)
+
+global atlasViewer
+dirnameSubj = atlasViewer.dirnameSubj;
+dirnameAtlas = atlasViewer.dirnameAtlas;
+groupSubjList = atlasViewer.groupSubjList;
+
+if isempty(groupSubjList)
+    groupSubjList{1} = dirnameSubj;
+end
+for ii=1:length(groupSubjList)
+    fprintf('Resetting state for subj: %s\n', groupSubjList{ii});
+    if exist([groupSubjList{ii}, '/atlasViewer.mat'], 'file')==2
+        delete([groupSubjList{ii}, '/atlasViewer.mat']);
+    end
+    delete([groupSubjList{ii}, '/fw/*']);
+    delete([groupSubjList{ii}, '/imagerecon/*']);
+    pause(1);
+end
+
+% Reload subject with it's own, newly-generated anatomical files
+AtlasViewerGUI(dirnameSubj, dirnameAtlas, 'userargs');
+
+
+
+% --------------------------------------------------------------------
+function editViewAnglesAzimuth_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.editViewAnglesAzimuth)
+        if hObject==axesv(ii).handles.editViewAnglesAzimuth
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+
+az = str2num(get(hObject, 'string'));
+el = str2num(get(handles.editViewAnglesElevation, 'string'));
+[~, v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, az, el);
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, az, el);
+
+
+
+
+% --------------------------------------------------------------------
+function editViewAnglesElevation_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.editViewAnglesElevation)
+        if hObject==axesv(ii).handles.editViewAnglesElevation
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+
+el = str2num(get(hObject, 'string'));
+az = str2num(get(handles.editViewAnglesAzimuth, 'string'));
+setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, az, el);
+[~, v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, az, el);
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, az, el);
+
+
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsAnterior_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsAnterior)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsAnterior
+            ax=axesv(ii);
+            break;            
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+
+[~,v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, 180, 0);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', 180));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', 0));
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, 180, 0);
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsPosterior_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsPosterior)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsPosterior
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+
+[~,v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, 0, 0);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', 0));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', 0));
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, 0, 0);
+
+
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsRight_Callback(hObject, eventdata, handles)
+
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+o = headsurf.orientation;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsRight)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsRight
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+
+[~,v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, 90, 0);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', 90));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', 0));
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, 90, 0);
+
+
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsLeft_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+o = headsurf.orientation;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsLeft)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsLeft
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+
+% Error checks
+if isempty(ax)
+    return;
+end
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+[~,v_up] = setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, -90, 0);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', -90));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', 0));
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, -90, 0);
+
+
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsSuperior_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsSuperior)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsSuperior
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+if isempty(ax)
+    return;
+end
+
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, 0, 90);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', 0));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', 90));
+axes_order = getCoordTranspose(headsurf.orientation);
+v_up = applyCoordTranspose(axes_order, [0,1,0]);
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, 0, 90);
+
+
+
+% --------------------------------------------------------------------
+function pushbuttonStandardViewsInferior_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+axesv = atlasViewer.axesv;
+headsurf = atlasViewer.headsurf;
+
+ax=[];
+for ii=1:length(axesv)
+    if ishandles(axesv(ii).handles.pushbuttonStandardViewsInferior)
+        if hObject==axesv(ii).handles.pushbuttonStandardViewsInferior
+            ax=axesv(ii);
+            break;
+        end
+    end
+end
+if isempty(ax)
+    return;
+end
+
+if isempty(headsurf.orientation)
+    menu(ax.errmsg{1},'OK');
+    return;
+end
+
+setViewAngles(ax.handles.axesSurfDisplay, headsurf.orientation, 0, -90);
+set(handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', 0));
+set(handles.editViewAnglesElevation, 'string', sprintf('%0.2f', -90));
+axes_order = getCoordTranspose(headsurf.orientation);
+v_up = applyCoordTranspose(axes_order, [0,1,0]);
+set(ax.handles.axesSurfDisplay, 'CameraUpVector',v_up); 
+drawnow;
+
+updateViewAngles(ax, ii, 0, -90);
+
+
+
+
+% --------------------------------------------------------------------
+function menuItemCalcRefpts_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+refpts  = atlasViewer.refpts;
+headvol = atlasViewer.headvol;
+headsurf = atlasViewer.headsurf;
+
+err = 0;
+if isfield(atlasViewer,'headsurf')
+    [refpts, err]  = calcRefpts(refpts, headvol);
+    if err==-1
+        [refpts, err]  = calcRefpts(refpts, headsurf);
+        if err==-1
+            msg{1} = sprintf('The head surface and/or volume of this subject does not have enough vertices to\n');
+            msg{2} = sprintf('calculate the eeg reference points. Need a denser surface mesh for this subject...');
+            menu([msg{:}],'OK');
+            return;
+        end
+    end
+end
+
+saveRefpts(refpts, headvol.T_2mc, 'overwrite');
+if ~err
+    refpts = displayRefpts(refpts);
+    atlasViewer.refpts = refpts;
+end
+
+
+
+% --------------------------------------------------------------------
+function menuItemConfigureRefpts_Callback(hObject, eventdata, handles)
+
+RefptsSystemConfigGUI();
+
+
+
+% --------------------------------------------------------------------
+function radiobuttonHeadDimensions_Callback(hObject, eventdata, handles)
+
+global atlasViewer
+
+refpts = atlasViewer.refpts;
+
+if get(hObject,'value')==1
+    valstr = 'on';
+    refpts = calcRefptsCircumf(refpts);
+else
+    valstr = 'off';
+end
+
+set(refpts.handles.uipanelHeadDimensions, 'visible',valstr);
+
+
+
+% --------------------------------------------------------------------
+function menuItemInstallAtlas_Callback(hObject, eventdata, handles)
+global atlasViewer
+
+dirnameAtlas = atlasViewer.dirnameAtlas;
+
+% Find default folder where AV searches for atlases
+dirnameDst = fileparts(fileparts(getAtlasDir()));
+dirnameAtlasNew = selectAtlasDir();
+if isempty(dirnameAtlasNew)
+    return;
+end
+pparts = getpathparts(dirnameAtlasNew);
+h = waitbar(0,'Installing new atlas, please wait...');
+if exist([dirnameDst, '/', pparts{end}], 'dir') == 7
+    fprintf('%s is already installed ... moving %s to %s_old\n', pparts{end}, pparts{end}, pparts{end});
+    copyfile(dirnameAtlas, [dirnameAtlas(1:end-1), '_old']); 
+end
+copyfile(dirnameAtlasNew, [dirnameDst, '/', pparts{end}]);
+waitbar(1, h, 'Installion completed.');
+pause(2);
+close(h);
 

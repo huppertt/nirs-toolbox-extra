@@ -1,9 +1,17 @@
-function pts = pullPtsToSurf(pts,surf0,mode,depth)
-
-hwait = waitbar(0,'Please wait...');
+function pts = pullPtsToSurf(pts, surf0, mode, depth, showprogress)
 
 if ~exist('mode','var')
     mode='normal';
+end
+if ~exist('depth','var')
+    depth=0;
+end
+if ~exist('showprogress','var')
+    showprogress=true;
+end
+
+if showprogress
+    hwait = waitbar(0,'Please wait...');
 end
 
 vol = [];
@@ -40,11 +48,6 @@ if isempty(c)
     c = findcenter(v);
 end
 
-if ~exist('depth','var')
-    depth=0;
-end
-
-
 % Use normal to the surface to project points to surface 
 if strcmpi(mode,'normal')
 
@@ -66,7 +69,9 @@ elseif strcmpi(mode,'center')
         ny=dims(2);
         nz=dims(3);
         for ii=1:size(pts,1)
-            waitbar(ii/size(pts,1),hwait);
+            if showprogress 
+                waitbar(ii/size(pts,1),hwait);
+            end
         
             q = pts(ii,:);
             
@@ -111,8 +116,9 @@ elseif strcmpi(mode,'center')
     else
 
         for ii=1:size(pts,1)
-            waitbar(ii/size(pts,1),hwait);
-        
+            if showprogress 
+                waitbar(ii/size(pts,1),hwait);
+            end        
             q = pts(ii,:);
         
             % Find nearest point to q on the surface
@@ -177,8 +183,9 @@ elseif strcmpi(mode,'nearest')
     else
 
         for ii=1:size(pts,1)
-            waitbar(ii/size(pts,1),hwait);
-        
+            if showprogress 
+                waitbar(ii/size(pts,1),hwait);
+            end        
             q = pts(ii,:);
         
             % Find nearest point to q on the surface
@@ -198,5 +205,7 @@ elseif strcmpi(mode,'nearest')
         
 end
 
-close(hwait);
+if showprogress
+    close(hwait);
+end
 

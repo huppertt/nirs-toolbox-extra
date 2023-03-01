@@ -6,9 +6,9 @@ function fwrite3(fid, val)
 %
 % Original Author: Bruce Fischl
 % CVS Revision Info:
-%    $Author: jdubb $
-%    $Date: 2012-11-30 03:12:57 $
-%    $Revision: 1.1 $
+%    $Author: nicks $
+%    $Date: 2011/03/02 00:04:12 $
+%    $Revision$
 %
 % Copyright © 2011 The General Hospital Corporation (Boston, MA) "MGH"
 %

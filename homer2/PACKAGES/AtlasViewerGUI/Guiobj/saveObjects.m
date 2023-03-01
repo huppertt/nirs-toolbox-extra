@@ -4,12 +4,7 @@ if isempty(varargin)
     return;
 end
 
-V = AtlasViewerGUI_version();
-if str2num(V{2})==0
-    vrnum = V{1};
-else
-    vrnum = [V{1} '.' V{2}];
-end
+vrnum = AtlasViewerGUI_version();
 
 hwait = waitbar(0,'Please wait for AtlasViewer to save the state ...');
 

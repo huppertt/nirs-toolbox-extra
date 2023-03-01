@@ -1,63 +1,26 @@
-function dirname = getAppDir(backward_compatible)
+function dirname = getAppDir(isdeployed_override)
 
-if ~exist('backward_compatible','var') | isempty(backward_compatible)
-    backward_compatible = 0;
+if ~exist('isdeployed_override','var')
+    isdeployed_override = 'notdeployed';
 end
 
-
-if ispc()
-    dirname = 'c:/users/public/homer2/';
-else
-    currdir = pwd;
-    cd ~/;
-    dirnameHome = pwd;   
-    dirname = [dirnameHome, '/homer2/'];
-    cd(currdir);
-end
-
-if backward_compatible
-    if ~exist(dirname, 'dir')
-        dirname = getAppDirOld();
-    elseif ~exist([dirname, 'Colin'], 'dir')
-        dirname = getAppDirOld();
-    end
-end 
-
-if dirname(end) ~= '/'
-    if dirname(end) == '\'
-        dirname(end) = '/';
+if isdeployed() || strcmp(isdeployed_override, 'isdeployed')
+    if ispc()
+        dirname = 'c:/users/public/homer2/';
     else
-        dirname(end+1) = '/';
+        currdir = pwd;
+        cd ~/;
+        dirnameHome = pwd;
+        dirname = [dirnameHome, '/homer2/'];
+        cd(currdir);
     end
-end
-
-
-
-
-
-% --------------------------------------------------------------------------
-function dirname = getAppDirOld()
-
-if ispc()
-    dirname = 'c:/users/public';
 else
-    currdir = pwd;
-    cd ~/;
-    dirnameHome = pwd;   
-    dirname = dirnameHome;
-    cd(currdir);
+    dirname = fileparts(which('Homer2_UI.m'));
 end
 
+dirname(dirname=='\') = '/';
 if dirname(end) ~= '/'
-    if dirname(end) == '\'
-        dirname(end) = '/';
-    else
-        dirname(end+1) = '/';
-    end
+    dirname(end+1) = '/';
 end
-
-
-
-
 
 

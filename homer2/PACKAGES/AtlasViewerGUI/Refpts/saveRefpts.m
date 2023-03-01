@@ -1,17 +1,10 @@
-function refpts = saveRefpts(refpts, dirname, T_vol2mc, mode)
+function refpts = saveRefpts(refpts, T_vol2mc, mode)
 
 if isempty(refpts) | isempty(refpts.pos)
     return;
 end
 
-if ~exist('dirname','var')  | isempty(dirname)
-    dirname = [refpts.pathname, '/anatomical/'];
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/anatomical/'];    
-end
+dirname = [refpts.pathname, '/anatomical/'];
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end
@@ -23,7 +16,7 @@ if ~exist('mode', 'var') | isempty(mode)
 end
 
 if ~isempty(refpts.handles.selected)
-    for ii=1:size(refpts.pos,1)
+    for ii=1:size(refpts.handles.selected,1)
         if ishandles(refpts.handles.selected(ii))
             delete(refpts.handles.selected(ii));
             refpts.handles.selected(ii) = -1;
@@ -33,6 +26,7 @@ end
 
 T_2vol = refpts.T_2vol;
 
+% mode = 'nosave';
 if strcmp(mode,'nosave')
     return;
 end
@@ -44,8 +38,20 @@ if ~exist('./anatomical','dir')
     end
 end
 
+% Get all eeg points whose position has been found, not just the selected
+% ones in refpts.pos and refpts.labels. In refpts.txt we
+% should have all the ones that were found. BUT we don't want to change 
+% anything about the current selection of displayed eeg points in the current 
+% AtlasViewer session, therefore save in a temporary local variable,
+% refpts_all. 
+refpts_all = refpts;
+refpts_all.eeg_system.selected = '10-5';
+refpts_all = set_eeg_active_pts(refpts_all, 'nowarning');
+
 if exist([dirname,'refpts.txt'],'file') & strcmp(mode,'overwrite')
-    menu(sprintf('Old refpts.txt were moved to refpts.txt.bak'),'OK');
+    msg = 'Old refpts.txt were moved to refpts.txt.bak';
+    % menu(msg,'OK');
+    fprintf('%s\n', msg);
     movefile([dirname, 'refpts.txt'], [dirname, 'refpts.txt.bak']);
     if exist([dirname,'refpts_labels.txt'],'file')
         movefile([dirname, 'refpts_labels.txt'], [dirname, 'refpts_labels.txt.bak']);
@@ -61,15 +67,15 @@ end
 
 if ~exist([dirname 'refpts.txt'], 'file') | strcmp(mode, 'overwrite')
     % Unapply T_2vol to get back to original ref pts
-    pos = refpts.pos;
+    pos = refpts_all.pos;
     pos = xform_apply(pos, inv(T_vol2mc * T_2vol));
     save([dirname 'refpts.txt'], 'pos', '-ascii');
 end
 
 if ~exist([dirname 'refpts_labels.txt'], 'file') | strcmp(mode, 'overwrite')
     fd = fopen([dirname 'refpts_labels.txt'], 'wt');
-    for ii=1:length(refpts.labels)
-        fprintf(fd, '%s\n', refpts.labels{ii});
+    for ii=1:length(refpts_all.labels)
+        fprintf(fd, '%s\n', refpts_all.labels{ii});
     end
     fclose(fd);
 end

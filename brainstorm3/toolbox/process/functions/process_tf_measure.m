@@ -6,9 +6,9 @@ function varargout = process_tf_measure( varargin )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -36,7 +36,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Filter';
     sProcess.SubGroup    = 'Extract';
     sProcess.Index       = 375;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/Tutorials/TimeFrequency?highlight=%28Measure%29#Description_of_the_fields';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/TimeFrequency?highlight=%28Measure%29#Description_of_the_fields';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'timefreq'};
     sProcess.OutputTypes = {'timefreq'};
@@ -87,7 +87,10 @@ end
 
 
 %% ===== COMPUTE =====
-function [Values, isError] = Compute(Values, srcMeasure, destMeasure)
+function [Values, isError] = Compute(Values, srcMeasure, destMeasure, isKeepNan)
+    if nargin < 4 || isempty(isKeepNan)
+        isKeepNan = false;
+    end
     isError = 0;
     if strcmpi(srcMeasure, destMeasure)
         return;
@@ -132,7 +135,9 @@ function [Values, isError] = Compute(Values, srcMeasure, destMeasure)
                 otherwise,         isError = 1;
             end
     end
-    Values(isnan(Values)) = 0;
+    if ~isKeepNan
+        Values(isnan(Values)) = 0;
+    end
 end
 
 
@@ -151,10 +156,12 @@ function [DefFunction, ColormapType] = GetDefaultFunction(sTimefreq) %#ok<DEFNU>
         case 'cohere',   DefFunction = 'other';       ColormapType = 'connect1';
         case 'granger',  DefFunction = 'other';       ColormapType = 'connect1';
         case 'spgranger',DefFunction = 'other';       ColormapType = 'connect1';
+        case 'henv',     DefFunction = 'other';       ColormapType = 'connect1';
         case 'plv',      DefFunction = 'magnitude';   ColormapType = 'connect1';
         case 'plvt',     DefFunction = 'magnitude';   ColormapType = 'connect1';
         case 'pac',      DefFunction = 'maxpac';      ColormapType = 'pac';
         case 'dpac',     DefFunction = 'maxpac';      ColormapType = 'pac';
+        case 'tpac',     DefFunction = 'maxpac';      ColormapType = 'pac';
         case 'ttest',    DefFunction = 'other';       ColormapType = 'stat2'; 
         otherwise,       DefFunction = 'power';       ColormapType = 'timefreq';
     end

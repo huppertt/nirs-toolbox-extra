@@ -1,11 +1,9 @@
-function saveImgRecon(imgrecon, dirname)
+function saveImgRecon(imgrecon)
 
 if isempty(imgrecon)
     return;
 end
-if dirname(end)~='/' && dirname(end)~='\'
-    dirname(end+1)='/';
-end
+dirname = imgrecon.pathname;
 dirnameOut = [dirname 'imagerecon/'];
 
 Aimg_conc = imgrecon.Aimg_conc;

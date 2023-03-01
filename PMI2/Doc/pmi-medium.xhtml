@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>PMI: Medium Structure</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">The Medium Structure</h1>
+
+<p id="Description">The <mat>Medium</mat> structure defines the
+optical properties, imaging geometry, the volume to be reconstruction
+(where appropriate), and all the known optical perturbations in the
+volume (if any).  Together with the 
+<mat><a href="pmi-sd.xhtml">SD</a></mat> structure, the
+<mat>Medium</mat> structure is the fundamental structure for defining
+the forward and inverse problems to be solved by the PMI toolbox.</p>
+
+<h2 id="Summary">Summary of Medium Fields</h2>
+
+<table title="Medium Structure Fields and Their Meaning">
+<tr>
+  <th><mat>Muao</mat></th>        
+  <td>Average Optical Absorption [1/cm]</td> 
+</tr>
+<tr>
+  <th><mat>Muspo</mat></th>
+  <td>Average Transport Scattering Length [1/cm]</td> 
+</tr>
+<tr>
+  <th><mat>idxRefr</mat></th>        
+  <td>Index of Refraction [-]</td> 
+</tr>
+<tr>
+  <th><mat>Geometry</mat></th>        
+  <td>Imaging Geometry</td> 
+</tr>
+<tr>
+  <th><mat>Slab_Thickness</mat></th>  
+  <td>Thickness in Slab Models [cm]</td> 
+</tr>
+<tr>
+  <th><mat>CompVol</mat></th>         
+  <td>Specify Voxels in Forward Matrix</td> 
+</tr>
+<tr>
+  <th><mat>Object</mat></th>     
+  <td>Define Perturbations</td> 
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<h3 id="Mu">Medium.Muao, Medium.Muspo, Medium.idxRefr</h3>
+
+<p>
+<mat>Medium.Muao</mat>, <mat>Medium.Muspo</mat>, and
+<mat>Medium.idxRefr</mat> define the average optical properties of the
+tissue.  <mat>Medium.Muao</mat> is the optical absorption coefficient
+(inverse absorption length) in 1/cm.  <mat>Medium.Muspo</mat> is the
+transport scattering coefficient (inverse transport scattering length)
+in 1/cm.  <mat>Medium.idxRefr</mat> is the index of refraction.  The
+diffusion approximation breaks down for small scattering coefficient,
+so <mat>Medium.Muspo</mat> should be at least 1.0.  While the
+diffusion approximation is valid, the infinite slab solution can fail
+to converge if the absorption coefficient is too small so small
+absorption coefficients should be avoided as well.
+</p>
+
+<h3 id="Geometry">Medium.Geometry, Medium.Slab_Thickness</h3>
+
+<p><mat>Medium.Geometry</mat> is a text string that defines the
+imaging geometry to be used.  Currently supported values are
+'infinite' (infinite medium, no boundaries), 'semi' (semi-infinite
+medium, boundary at
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>0</mn></math>),
+and 'slab' (infinite slab, boundaries at
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>0</mn></math>
+and
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>Z</mn></math>).
+</p>
+
+<p>For infinite media, <mat>Medium.Slab_Thickness</mat> is not used.
+For semi-infinite medium, the sign of <mat>Medium.Slab_Thickness</mat>
+is used to determine whether the tissue is in the
+<math xmlns="&mathml;" display="inline"><mo>+</mo><mi>z</mi></math> or
+<math xmlns="&mathml;" display="inline"><mo>-</mo><mi>z</mi></math> 
+direction (if the thickness is positive, then the tissue is on the 
+<math xmlns="&mathml;" display="inline">
+  <mi>z</mi><mo>&gt;</mo><mn>0</mn></math> 
+side of the plane).  For slab geometries,
+<mat>Medium.Slab_Thickness</mat> specifies both the thickness of the
+slab and whether it lies above or below the
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>0</mn></math> 
+plane (the tissue is located between
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>0</mn></math> 
+and
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>Z</mn></math>
+where <math xmlns="&mathml;" display="inline"><mi>Z</mi></math> is given by
+<mat>Medium.Slab_Thickness</mat>).
+</p>
+
+<h3 id="CompVol">Medium.CompVol</h3>
+
+<p> <mat>Medium.CompVol</mat> is a structure that declares the volume
+being imaged.  There is more than one way to specify the volume; the
+string <mat>Medium.CompVol.Type</mat> tells the toolbox which method
+is being used.  The values of <mat>Medium.CompVol.Type</mat> currently
+recognized by the toolbox are "uniform", "computed", and "list".
+<ul>
+  <li>If <mat>Medium.CompVol.Type</mat> is set to "uniform" then the
+      volume of the voxels (assumed to be the same for all voxels) is 
+      calculated by multiplying together <mat>Medium.CompVol.XStep</mat>,
+      <mat>Medium.CompVol.YStep</mat>, and <mat>Medium.CompVol.ZStep</mat>.
+      The centers of the voxels are at the
+      <math xmlns="&mathml;" display="inline">
+	<mfenced>
+	  <mi>x</mi>
+	  <mi>y</mi>
+	  <mi>z</mi>
+	</mfenced>
+      </math>
+      locations obtained by calling the Matlab function
+      <mat>meshgrid()</mat> with the vectors
+      <mat>Medium.CompVol.X</mat>, <mat>Medium.CompVol.Y</mat>, 
+      and <mat>Medium.CompVol.Z</mat> as its arguments.  In other words,
+      there is one voxel for every possible combination of the elements
+      of <mat>Medium.CompVol.X</mat>, <mat>Medium.CompVol.Y</mat>, 
+      and <mat>Medium.CompVol.Z</mat>.  <strong>NOTE: X, Y, 
+      and Z must contain regularly-spaced intervals.  The toolbox is
+      not smart enough to detect non-uniform grids for you.</strong></li>
+  <li> "Uniform" types, however, are cumbersome and they also contain
+      redundant information.   They exist largely as for historical
+      reasons and will hopefully someday find their long-deserved
+      death.  The simpler way to set up the imaging volume is with
+      the "computed" type.  In this case, <mat>Medium.CompVol.XStep</mat>,
+      <mat>Medium.CompVol.YStep</mat>, and <mat>Medium.CompVol.ZStep</mat>
+      not only give the volume of the voxels but also the spacing between
+      adjacent voxels.  For computed volumes,
+      <mat>Medium.CompVol.X</mat>, <mat>Y</mat>, and <mat>Z</mat>,
+      instead of specifying all values, specify just the end-points
+      and the given step sizes are used to fill in all the other values.
+      specify just the end-points of the list; the interval is taken
+      For example, if <mat>Medium.CompVol.XStep</mat> is
+      <mat>1.0</mat> and <mat>Medium.CompVol.XStep</mat> is
+      <mat>[0.5, 3.0]</mat> then all the voxels will have X-coordinates 
+      of <mat>0.5</mat>, <mat>1.5</mat>, or <mat>2.5</mat>.</li>
+  <li> Finally, if non-uniform grids are absolutely essential, 
+      <mat>Medium.CompVol.Type</mat> can be set to "list".  Now,
+      <mat>Medium.CompVol.X</mat>, <mat>Medium.CompVol.Y</mat>, and
+      <mat>Medium.CompVol.Z</mat> are vectors that directly specify the 
+      <math xmlns="&mathml;" display="inline">
+	<mfenced>
+	  <mi>x</mi>
+	  <mi>y</mi>
+	  <mi>z</mi>
+	</mfenced>
+      </math>
+      location of <em>every</em> voxel and the vector
+      <mat>Medium.CompVol.Volume</mat> gives the volume at every voxel
+      (which need not be constant).</li>
+</ul>  
+</p>
+
+<h3 id="Object">Medium.Object</h3>
+
+<p> 
+<mat>Medium.Object</mat> is a vector of cells that contain structures
+defining perturbations to the optical properties.  Each cell defines a
+single perturbation.  All lengths are in centimeters, all optical
+properties are in inverse-centimeters.  Perturbations should
+<strong>never</strong> overlap, but the toolbox is not smart enough to
+check for this explicitly.  Every structure contains a field
+<mat>Medium.Object{}.Type</mat> that specifies what kind of
+perturbation it describes.  The legal values for <mat>Type</mat> are
+"sphere", "block", and "image".</p>
+
+<table title="Object Structure Fields and Their Meaning"
+       style="float: right; margin: 1em">
+<caption>Object Field Structure Summary</caption>
+<tr>
+  <th>Type</th>
+  <th>Field</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td rowspan="4" valign="middle" halign="center">"Sphere"</td>        
+  <td>Pos</td>
+  <td>Coordinates of center of sphere,
+    <math xmlns="&mathml;">
+      <mfenced>
+	<msub>
+	  <mi>r</mi>
+	  <mi>x</mi>
+	</msub>
+	<msub>
+	  <mi>r</mi>
+	  <mi>y</mi>
+	</msub>
+	<msub>
+	  <mi>r</mi>
+	  <mi>z</mi>
+	</msub>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Radius</td>
+  <td>Radius of the perturbation</td>
+</tr>
+<tr>
+  <td>Mua</td>
+  <td>Vector of absorption coefficients,
+    <math xmlns="&mathml;">
+      <msub>
+	<mi>&mu;</mi>
+	<mi>a</mi>
+      </msub>
+  <mfenced>
+    <mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Musp</td>
+  <td>Vector of scattering coefficients,
+    <math xmlns="&mathml;">
+      <msubsup>
+	<mi>&mu;</mi>
+	<mi>s</mi>
+	<mi>&prime;</mi>
+      </msubsup>
+      <mfenced>
+	<mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td rowspan="4" valign="middle" halign="center">"Block"</td>        
+  <td>Pos</td>
+  <td>Coordinates of center of sphere,
+    <math xmlns="&mathml;">
+      <mfenced>
+	<msub>
+	  <mi>r</mi>
+	  <mi>x</mi>
+	</msub>
+	<msub>
+	  <mi>r</mi>
+	  <mi>y</mi>
+	</msub>
+	<msub>
+	  <mi>r</mi>
+	  <mi>z</mi>
+	</msub>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Dims</td>
+  <td>Lengths of each side of the block,
+    <math xmlns="&mathml;">
+      <mfenced>
+	<msub>
+	  <mi>l</mi>
+	  <mi>x</mi>
+	</msub>
+	<msub>
+	  <mi>l</mi>
+	  <mi>y</mi>
+	</msub>
+	<msub>
+	  <mi>l</mi>
+	  <mi>z</mi>
+	</msub>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Mua</td>
+  <td>Vector of absorption coefficients,
+    <math xmlns="&mathml;">
+      <msub>
+	<mi>&mu;</mi>
+	<mi>a</mi>
+      </msub>
+      <mfenced>
+	<mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Musp</td>
+  <td>Vector of scattering coefficients,
+    <math xmlns="&mathml;">
+      <msubsup>
+	<mi>&mu;</mi>
+	<mi>s</mi>
+	<mi>&prime;</mi>
+      </msubsup>
+      <mfenced>
+	<mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td rowspan="2" valign="middle" halign="center">"Image"</td>        
+  <td>Mua</td>
+  <td>Matrix of voxel absorption coefficients,
+    <math xmlns="&mathml;">
+      <msub>
+	<mi>&mu;</mi>
+	<mi>a</mi>
+      </msub>
+      <mfenced>
+	<mi>:</mi>
+	<mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+<tr>
+  <td>Musp</td>
+  <td>Matrix of voxel scattering coefficients,
+    <math xmlns="&mathml;">
+      <msubsup>
+	<mi>&mu;</mi>
+	<mi>s</mi>
+	<mi>&prime;</mi>
+      </msubsup>
+      <mfenced>
+	<mi>:</mi>
+	<mi>&lambda;</mi>
+      </mfenced>
+  </math></td>
+</tr>
+</table>
+
+<p> For spherical perturbations, the <mat>Object</mat> fields are
+<mat>Pos</mat>, <mat>Radius</mat>, <mat>Mua</mat>, and
+<mat>Musp</mat>.  The position vector (to the center of the sphere) is
+in <mat>Object.Pos</mat> and the radius of the sphere is in
+<mat>Object.Radius</mat>.  The optical properties of the sphere, at
+every wavelength, are recorded in <mat>Object.Mua</mat> and
+<mat>Object.Musp</mat>.  Note that these are the actual optical
+properties and not the perturbations relative to background.  Finally,
+the shape of the sphere is mapped on to the grid of voxels before the
+perturbation is calculated, so pixelation effects can become important
+when the radius becomes comparable to the voxel spacing.  </p>
+
+<p> Rectangular (block) perturbations are very similar to spherical
+perturbations.  Again, <mat>Object.Mua</mat> and
+<mat>Object.Musp</mat> specify the optical properties and
+<mat>Object.Pos</mat> specifies the center of the perturbation.  The
+final field, <mat>Object.Dims</mat>, is a vector that specifies the
+length of each side of the box 
+<math xmlns="&mathml;">
+  <mfenced>
+    <msub>
+      <mi>l</mi>
+      <mi>x</mi>
+    </msub>
+    <msub>
+      <mi>l</mi>
+      <mi>y</mi>
+    </msub>
+    <mrow>
+      <mtext>and </mtext>
+      <msub>
+	<mi>l</mi>
+	<mi>z</mi>
+      </msub>
+    </mrow>
+  </mfenced>
+</math>.
+</p>
+
+<p> The final perturbation type, "image", specifies the optical
+properties at every voxel and at every wavelength.  Again, these are
+the actual optical properties and <em>not</em> the perturbations
+relative to background.  The rows of the matrix contain the different
+voxels, the columns hold the different wavelengths.  All wavelengths
+must be defined even if they aren't used in the measurement list.
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body> 
+</html>

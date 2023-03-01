@@ -17,8 +17,7 @@
 % iqr -  parameter used to compute the statistics (iqr = 1.5 is 1.5 times the
 %        interquartile range and is usually used to detect outliers). 
 %        Increasing it, it will delete fewer coefficients.
-%        If iqr<0 then this function is skipped. The typical value used in
-%        the literature is 0.1.
+%        If iqr<0 then this function is skipped. 
 % 
 %
 % OUTPUTS:
@@ -31,7 +30,15 @@
 %
 
 
-function [dodWavelet] = hmrMotionCorrectWavelet(dod,SD,iqr)
+function [dodWavelet] = hmrMotionCorrectWavelet(dod,SD,iqr,turnon)
+
+if exist('turnon')
+   if turnon==0
+       dodWavelet = dod;
+   return;
+   end
+end
+
 
 if iqr<0
     dodWavelet = dod;

@@ -3,9 +3,9 @@ function varargout = process_source_atlas( varargin )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -33,7 +33,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'File';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 335;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/News#Project sources_to_an_atlas';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/News#Project sources_to_an_atlas';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'results'};
     sProcess.OutputTypes = {'results'};
@@ -182,7 +182,10 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         
         % === COMPUTE SCOUT VALUES ===
         if (ResultsMat.nComponents == 1)
-            isFlipSign = strcmpi(sInput.FileType, 'results') && isempty(strfind(sInput.FileName, '_abs_zscore'));
+            isFlipSign = strcmpi(sInput.FileType, 'results') && ...
+                         isempty(strfind(sInput.FileName, '_abs')) && ...
+                         isempty(strfind(sInput.FileName, '_norm')) && ...
+                         isempty(strfind(sInput.FileName, 'NIRS'));
             ImageGridAmp(iScout,:) = bst_scout_value(Fscout, sScouts(iScout).Function, ScoutOrient, ResultsMat.nComponents, [], isFlipSign);
         elseif isNorm
             ImageGridAmp(iScout,:) = bst_scout_value(Fscout, sScouts(iScout).Function, ScoutOrient, ResultsMat.nComponents, 'norm');

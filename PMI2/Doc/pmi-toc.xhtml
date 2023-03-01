@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>PMI Toolbox Documentation</title>
+  <meta name="Description" content="Documentation for PMI Toolbox" />
+  <meta name="Generator"   content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+  <!-- Local style sheet -->
+  <style type="text/css">
+   /* Mozilla CSS counter support appears to be broken, work around it */
+
+   /* Different style labeling at each level */
+
+   .level1 { list-style-type: decimal; }
+   .level2 { list-style-type: upper-roman; }
+   .level3 { list-style-type: lower-latin; }
+   .level4 { list-style-type: lower-roman; }
+
+   /* Spread out the lists a bit */
+
+   li { margin-bottom: 0.5ex; }
+   ol { margin-bottom: 1.0ex; 
+        margin-top:    0.25ex; }
+   ul { margin-bottom: 1.0ex; 
+        margin-top:    0.25ex; }
+  </style>
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+
+<h1 id="contents" class="centered">Toolbox Documentation&mdash;Table 
+	of Contents</h1>
+
+<ol class="level1">
+  <li><a href="pmi-overview.xhtml">Overview of PMI Toolbox</a></li>
+  <li><a href="pmi-gpl.xhtml">License</a></li>
+  <li>The <a href="pmi-sd.xhtml">SD Structure</a></li>
+  <li>The <a href="pmi-measlist.xhtml">Measurement List</a></li>
+  <li>The <a href="pmi-medium.xhtml">Medium Structure</a></li>
+  <li>Toolbox Functions
+    <ol class="level2">
+      <li><a href="pmipath.xhtml">pmipath</a> - setup 
+  				search paths for toolbox</li>
+  
+      <li>Data Processing Tools
+        <ol class="level3">
+          <li> Working with PMI formatted data files,
+		<a href="pmidata.xhtml">readPMIData, writePMIData</a></li>
+          <li> Fitting background optical properties,
+		<a href="pmimufit1.xhtml">fitMua, fitMusp</a></li>
+          <li> Simultaneous background optical property fitting,
+		<a href="pmimufit2.xhtml">fitBackground, 
+		  newFitBackground</a></li>
+          <li> Calibrating forward models to data,
+		<a href="pmisdfit.xhtml">fitSD, fitSDAmp, fitSDPhs</a></li>
+        </ol>
+      </li>
+  
+      <li>Computing the Forward Problem
+        <ol class="level3">
+          <li> Born Approximation (includes Rytov and FullBorn)
+            <ol class="level4">  
+              <li> Calculate the unperturbed fluence,
+			<a href="dpdwhelmholtz.xhtml">DPDWHelmholtz</a></li>
+              <li> Calculate the Born forward matrix,
+			<a href="genbornmat.xhtml">genBornMat</a></li>
+              <li> Calculate the total fluence,
+			<a href="genborndata.xhtml">genBornData</a></li>
+              <li> Frequency-Domain Imaging,
+			<a href="pmifdfwd.xhtml">FD2pt and FD3pt</a></li>
+              <li> Time-Domain Imaging,
+			<a href="pmitdfwd.xhtml">TD2pt and TD3pt</a></li>
+            </ol>
+          </li>
+
+          <li> Analytical Sphere Solution
+            <ol class="level4">
+              <li> Calculate total fluence given a spherical perturbation,
+			<a href="genspheredata.xhtml">genSphereData</a></li>
+              <li> Calculate fluence scattered off of spherical perturbations,
+			<a href="exactsphere.xhtml">exactSphere</a></li>
+            </ol>
+          </li>
+
+          <li> tMCimg and tFDimg
+            <ol class="level4">
+              <li> <a href="pmitomc.xhtml">PMItoFD, PMItoMC</a></li>
+              <li> <a href="mcconfig.xhtml">MCConfig</a></li>
+              <li> <a href="loadmc2pt.xhtml">loadMC2pt</a></li>
+              <li> <a href="readmchis.xhtml">readMCHis</a></li>
+              <li> <a href="readsig.xhtml">readSig</a></li>
+            </ol>
+          </li>
+<!--
+          <li> NUDiffusion - undocumented directory
+            <ul>
+              <li> readGregData</li>
+              <li> writeGregConfig</li>
+            </ul>
+          </li>
+-->
+    
+          <li> Calculating Jacobians
+	    <ul>
+	      <li><a href="genmujacobian.xhtml">genMuJacobian</a></li>
+	      <li><a href="gensdjacobian.xhtml">genSDJacobian</a></li>
+	      <li><a href="genposjacobian.xhtml">genPosJacobian</a></li>
+	      <!-- 
+	      <li><a href="genidxjacobian.xhtml">genIdxJacobian</a></li>
+	      -->
+	      <li><a href="gen2ptjacobian.xhtml">genJacobianFrom2pts</a></li>
+	    </ul>
+	  </li>
+        </ol>
+      </li>
+
+      <li> Adding Simulated Noise,
+          <a href="pminoise.xhtml">addElecNoise, addShotNoise</a></li>
+    
+      <li> Data Reconstruction
+        <ol class="level3">
+          <li> <a href="tik.xhtml">Tikhonov Reconstruction</a></li>
+          <li> <a href="fbp.xhtml">Filtered Back-projection</a></li>
+          <li> <a href="rlsq.xhtml">Regularized Least-squares</a></li>
+          <li> <a href="tcgls.xhtml">Truncated Conjugate Gradient</a></li>
+          <li> <a href="art.xhtml">Algebraic Reconstruction Technique</a></li>
+          <li> <a href="sirt.xhtml">Simultaneous Iterative 
+			Reconstruction Technique</a></li>
+          <li> <a href="tsvd.xhtml">Truncated Singular 
+			Value Decomposition</a></li>
+        </ol>
+      </li>
+    
+      <li>Data Visualization
+        <ol class="level3">
+          <li> 2-D data visualization,
+		<a href="pmiplot2.xhtml">plotData, showImage</a></li>
+          <li> 3-D data visualization,
+		<a href="pmiplot3.xhtml">showVolume, ishowVolume</a></li>
+        </ol>
+      </li>
+    
+      <li> Useful Utility Routines
+        <ol class="level3">
+          <li> <a href="isfdistd.xhtml">isFD, isTD</a></li>
+          <li> <a href="setoptode.xhtml">SetOptode</a></li>
+          <li> <a href="calcaffine.xhtml">calcAffine</a></li>
+          <li> <a href="calcsep.xhtml">calcSep</a></li>
+          <li> <a href="genmeaslist.xhtml">genMeasList</a></li>
+          <li> <a href="cm256.xhtml">cm256, gray256</a></li>
+          <li> <a href="mergesd.xhtml">mergeSD</a></li>
+          <li> <a href="samplevolume.xhtml">sampleVolume</a></li>
+        </ol>
+      </li>
+
+    </ol>
+  </li>
+  <li> <a href="pmi-example.xhtml">Sample Programs</a></li>
+  <li> Additional <a href="pmi-developer.xhtml">programming notes</a>
+       for developers and users writing their own PMI toolbox based
+       applications.</li>
+</ol>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+                            Table of Contents    
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>

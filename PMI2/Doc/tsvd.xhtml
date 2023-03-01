@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Truncated SVD</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Truncated Singular Value Decomposition</h1>
+
+<p id="Description">Invert the forward matrix using a truncated
+singular value decomposition for regularization.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="tsvd.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[X,U,S,V] = tsvd(A, Y, nSV, [u, s, v])
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">A</td>
+    <td>Forward matrix to be inverted</td>
+</tr>
+<tr>
+    <td class="varname">Y</td>
+    <td>Residue appropriate to <mat>A</mat></td>
+</tr>
+<tr>
+    <td class="varname">nSV</td>
+    <td>The number of singular values to include</td>
+</tr>
+<tr>
+    <td class="varname">u, s, v</td>
+    <td>Results of a previous call to Matlab <mat>svd()</mat> routine.</td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">X</td>
+    <td>The reconstructed image</td>
+</tr>
+<tr>
+    <td class="varname">U, S, V</td>
+    <td>Singular values used in reconstruction <mat>X</mat></td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p> If </p>
+<math xmlns="&mathml;" display="block">
+    <mrow>
+	<mi type="matrix">u</mi>
+	<mi type="matrix">s</mi>
+	<msup>
+	    <mi type="matrix">v</mi>
+	    <mo>T</mo>
+	</msup>
+    </mrow>
+    <mo>=</mo>
+    <mi type="matrix">A</mi>
+</math>
+<p class="noindent">
+is the singular value decomposition of the matrix 
+<math xmlns="&mathml;"><mi type="matrix">A</mi></math>, 
+where
+<math xmlns="&mathml;"><mi type="matrix">u</mi></math> and
+<math xmlns="&mathml;"><mi type="matrix">v</mi></math> are the matrices 
+of ortho-normal eigenvectors and 
+<math xmlns="&mathml;"><mi type="matrix">s</mi></math> is the diagonal matrix
+of eigenvalues, then
+</p>
+<math xmlns="&mathml;" display="block">
+    <msup>
+	<mi type="matrix">A</mi>
+	<mn>-1</mn>
+    </msup>
+    <mo>=</mo>
+    <mrow>
+	<mi type="matrix">v</mi>
+	<mi type="matrix">t</mi>
+	<msup>
+	    <mi type="matrix">u</mi>
+	    <mo>T</mo>
+	</msup>
+    </mrow>
+</math>
+<p class="noindent">
+is the matrix inverse of 
+<math xmlns="&mathml;"><mi type="matrix">A</mi></math>
+where
+<math xmlns="&mathml;">
+    <msub>
+	<mi>t</mi>
+	<mrow>
+	    <mi>i</mi>
+	    <mi>i</mi>
+	</mrow>
+    </msub>
+    <mo>&equiv;</mo>
+    <mrow>
+	<mn>1</mn>
+	<mo>/</mo>
+	<msub>
+	    <mi>s</mi>
+	    <mrow>
+		<mi>i</mi>
+		<mi>i</mi>
+	    </mrow>
+	</msub>
+    </mrow>
+</math> 
+and all the other elements of 
+<math xmlns="&mathml;"><mi type="matrix">t</mi></math> are zero.
+</p>
+
+<p>
+For ill-conditioned matrices, many of the eigenvalues, while not zero,
+can become quite small causing the data inversion to blow up if there
+is any noise at all present (and there always is noise present).  To
+prevent this, only the first
+<math xmlns="&mathml;"><mi>n</mi></math>
+are included in 
+<math xmlns="&mathml;"><mi type="matrix">t</mi></math> so that
+</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mi>t</mi>
+	<mrow>
+	    <mi>i</mi>
+	    <mi>i</mi>
+	</mrow>
+    </msub>
+    <mo>=</mo>
+    <mfenced open="{" close="">
+    <mtable>
+	<mtr>
+	    <mtd>
+		<mn>1</mn>
+		<mo>/</mo>
+		<msub>
+		    <mi>s</mi>
+		    <mrow>
+			<mi>i</mi>
+			<mi>i</mi>
+		    </mrow>
+		</msub>
+		<mtext>,</mtext>
+	    </mtd>
+	    <mtd>
+		<mi>i</mi>
+		<mo>&le;</mo>
+		<mi>n</mi>
+	    </mtd>
+	</mtr>
+	<mtr>
+	    <mtd>
+		<mn>0</mn>
+		<mtext>,</mtext>
+	    </mtd>
+	    <mtd>
+		<mi>i</mi>
+		<mo>&gt;</mo>
+		<mi>n</mi>
+	    </mtd>
+	</mtr>
+    </mtable>
+    </mfenced>
+    <mtext>.</mtext>
+</math> 
+
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

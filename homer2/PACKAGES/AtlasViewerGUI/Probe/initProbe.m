@@ -117,7 +117,9 @@ end
 function b = isempty_loc(probe)
 
 b = false;
-if isempty(probe.optpos)
+if isempty(probe)
+    b = true;
+elseif isempty(probe.optpos)
     b = true;
 end
 

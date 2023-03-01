@@ -7,10 +7,12 @@ if isempty(pathname)
         msg{2} = sprintf('in the Matlab version you''re using has stopped supporting it or the Wavelet Toolbox\n');
         msg{3} = sprintf('is missing. Homer2 is generating a db2 file from known values and saving it in the\n');
         msg{4} = sprintf('INSTALL folder\n');
-        menu([msg{:}], 'OK');
+        % menu([msg{:}], 'OK');
+        fprintf('%s\n', [msg{:}]);
+        fprintf('Generating file %s\n', [dirnameDst, 'db2.mat']);        
         db2 = [0.3415, 0.5915, 0.1585, -0.0915];
         save([dirnameDst, 'db2.mat'],'db2');
-    end    
+    end
 else
     if pathname(end)~='/' & pathname(end)~='\'
         pathname(end+1)='/';

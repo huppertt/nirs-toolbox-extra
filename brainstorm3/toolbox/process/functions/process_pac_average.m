@@ -3,9 +3,9 @@ function varargout = process_pac_average( varargin )
 %
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -146,10 +146,27 @@ function [tpacMat, tag, FileTag] = AverageFilesPAC(sInput, tpacMat, usePhase)
             end
             tpacMat.sPAC.DirectPAC = pac;
             FileTag = 'timefreq_pac_fullmaps';
+            %% Recompute nesting frequencies
+            pacDims = size(pac);
+            if length(pacDims) < 4
+                % Ensure we have 4 dimensions
+                pacDims = [ones(1,4-length(pacDims)), pacDims];
+                pac = reshape(pac,pacDims);
+            end
+            [nSources, nWindows, nLow, nHigh] = size(pac);
+            for iSource = 1:nSources
+                for iWindow = 1:nWindows
+                    curPac = pac(iSource,iWindow,:,:);
+                    [tmp, maxInd] = max(curPac(:));
+                    [indFa, indFp] = ind2sub([nLow, nHigh], maxInd);
+                    tpacMat.sPAC.NestingFreq(iSource,iWindow) = tpacMat.sPAC.LowFreqs(indFp);
+                    tpacMat.sPAC.NestedFreq(iSource,iWindow) = tpacMat.sPAC.HighFreqs(indFa);
+                end
+            end
             
         elseif isfield(spac,'DynamicPAC')    
             if usePhase
-                tpac = tpacMat.sPAC.DynamicPAC.*tpacMat.sPAC.DynamicPhase/N;
+                tpac = tpacMat.sPAC.DynamicPAC.*exp(1i*tpacMat.sPAC.DynamicPhase)/N;
             else
                 tpac = tpacMat.sPAC.DynamicPAC/N;
             end
@@ -167,7 +184,7 @@ function [tpacMat, tag, FileTag] = AverageFilesPAC(sInput, tpacMat, usePhase)
                     return;
                 end 
                 if usePhase && isequal(size(tpac,1), size(tmp.sPAC.DynamicPhase,1))
-                    tpac = tpac + tmp.sPAC.DynamicPAC.*tmp.sPAC.DynamicPhase/N;
+                    tpac = tpac + tmp.sPAC.DynamicPAC.*exp(1i*tmp.sPAC.DynamicPhase)/N;
                 elseif ~isequal(size(tpac,1), size(tmp.sPAC.DynamicPAC,1))                    
                     Message = ['Number of sources for phase in File #',num2str(iFile),' is not the same as previous files -- You cannot use phase in averaging'];
                     bst_report('Error', 'process_pac_average', sInput, Message);
@@ -178,6 +195,10 @@ function [tpacMat, tag, FileTag] = AverageFilesPAC(sInput, tpacMat, usePhase)
 %                 Nesting = cat(5,Nesting,tmp.sPAC.DynamicNesting);
             end
             tpacMat.sPAC.DynamicPAC = abs(tpac);
+            if usePhase
+                tpacMat.sPAC.PhasePAC = angle(tpac);
+                tpacMat.sPAC.DynamicPhase = angle(tpac);
+            end
             tpacMat.sPAC.DynamicNesting = [];%Nesting;
             FileTag = 'timefreq_dpac_fullmaps';
         end                

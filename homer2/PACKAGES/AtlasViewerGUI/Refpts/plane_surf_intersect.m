@@ -25,6 +25,8 @@ function [vertices ivertices] = plane_surf_intersect(plane, surf, dt)
 % AUTHOR: Jay Dubb (jdubb@nmr.mgh.harvard.edu)
 % DATE:   08/26/2009
 
+DEBUG=0;
+
 if isstruct(surf)
     vertices0 = surf.vertices;
     faces0 = surf.faces;
@@ -64,6 +66,12 @@ for ii=1:n
    d = abs(A*i + B*j + C*k + D) / sqrt(A^2 + B^2 + C^2);
    if (d < dt)
        vertices(jj,:) = vertices0(ii,:);
+       if DEBUG
+           hold on
+           h = plot3(vertices(jj,1), vertices(jj,2), vertices(jj,3), '.g');
+           drawnow;
+           hold off
+       end
        ivertices(jj) = ii;
        jj=jj+1;
    end

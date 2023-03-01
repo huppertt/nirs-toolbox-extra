@@ -46,7 +46,9 @@ end
 function b = isempty_loc(headsurf)
 
 b = false;
-if isempty(headsurf.mesh.vertices) | isempty(headsurf.mesh.faces)
+if isempty(headsurf)
+    b = true;
+elseif isempty(headsurf.mesh.vertices) | isempty(headsurf.mesh.faces)
     b = true;
 end
 

@@ -14,7 +14,7 @@ if ismac()
 else
 	dirnameSrc = [pwd, '/'];
 end
-dirnameDst = getAppDir();
+dirnameDst = getAppDir('isdeployed');
 
 % Uninstall
 try
@@ -22,19 +22,26 @@ try
         rmdir(dirnameDst, 's');
     end
 catch ME
+    close(h);
+    printStack();
     msg{1} = sprintf('Error: Could not remove old installation folder. It might be in use by other applications.\n');
     msg{2} = sprintf('Try closing and reopening file browsers or any other applications that might be using the\n');
     msg{3} = sprintf('installation folder and then retry installation.');
     menu([msg{:}], 'OK');
-    close(h);
+    pause(5);
     rethrow(ME)
 end
 
 platform = setplatformparams(dirnameSrc);
 
+v = getVernum();
+fprintf('=================================\n', v{1}, v{2});
+fprintf('Setup script for Homer2 v%s.%s:\n', v{1}, v{2});
+fprintf('=================================\n\n', v{1}, v{2});
+
 fprintf('Platform params:\n');
 fprintf('  arch: %s\n', platform.arch);
-fprintf('  mc_exe: %s\n', platform.mc_exe);
+fprintf('  mc_exe: %s%s\n', platform.mc_exe_name, platform.mc_exe_ext);
 fprintf('  homer2_exe: %s\n', platform.homer2_exe{1});
 fprintf('  atlasviewer_exe: %s\n', platform.atlasviewer_exe{1});
 fprintf('  setup_exe: %s\n', platform.setup_exe{1});
@@ -110,20 +117,21 @@ try
     mkdir([dirnameDst, 'Colin']);
     mkdir([dirnameDst, 'Colin/anatomical']);
     mkdir([dirnameDst, 'Colin/fw']);
-    mkdir([dirnameDst, 'tMCimg']);
-    mkdir([dirnameDst, 'tMCimg/bin']);
-    mkdir([dirnameDst, 'tMCimg/bin/Win']);
-    mkdir([dirnameDst, 'tMCimg/bin/Linux']);
-    mkdir([dirnameDst, 'tMCimg/bin/Darwin']);
+    mkdir([dirnameDst, platform.mc_exe_name]);
     mkdir([dirnameDst, 'Test']);
 catch ME
+    close(h);
     msg{1} = sprintf('Error: Could not create installtion subfolder. Installtion folder might be in use by other applications.\n');
     msg{2} = sprintf('Try closing and reopening file browsers or any other applications that might be using the\n');
     msg{3} = sprintf('installation folder and then retry installation.');
     menu([msg{:}], 'OK');
-    close(h);
+	pause(5);
     rethrow(ME)
 end
+
+% Get full paths for source and destination directories
+dirnameSrc = fullpath(dirnameSrc);
+dirnameDst = fullpath(dirnameDst);
 
 % Copy all the AtlasViewerGUI app folder files
 
@@ -143,9 +151,7 @@ end
 % Copy all the Colin atlas folder files
 copyFileToInstallation([dirnameSrc, 'headsurf.mesh'],         [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'headsurf2vol.txt'],      [dirnameDst, 'Colin/anatomical']);
-if (copyFileToInstallation([dirnameSrc, 'headvol.vox.gz'],    [dirnameDst, 'Colin/anatomical']) < 0)
-    copyFileToInstallation([dirnameSrc, 'headvol.vox'],       [dirnameDst, 'Colin/anatomical']);
-end
+copyFileToInstallation({[dirnameSrc, 'headvol.vox'], [dirnameSrc, 'headvol.vox.gz']}, [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'headvol2ras.txt'],       [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'headvol_dims.txt'],      [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'headvol_tiss_type.txt'], [dirnameDst, 'Colin/anatomical']);
@@ -156,14 +162,14 @@ copyFileToInstallation([dirnameSrc, 'pialsurf2vol.txt'],      [dirnameDst, 'Coli
 copyFileToInstallation([dirnameSrc, 'refpts.txt'],            [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'refpts2vol.txt'],        [dirnameDst, 'Colin/anatomical']);
 copyFileToInstallation([dirnameSrc, 'refpts_labels.txt'],     [dirnameDst, 'Colin/anatomical']);
-copyFileToInstallation([dirnameSrc, platform.mc_exe],         [dirnameDst, 'tMCimg/bin/', platform.arch]);
+copyFileToInstallation([dirnameSrc, platform.mc_exe_name, '.tar.gz'], [dirnameDst, platform.mc_exe_name]);
 copyFileToInstallation([dirnameSrc, 'db2.mat'],               dirnameDst);
 
 % Check if there a fluence profile to load in this particular search path
 fluenceProfFnames = dir([dirnameSrc, 'fluenceProf*.mat']);
 for ii=1:length(fluenceProfFnames)
     copyFileToInstallation([dirnameSrc, fluenceProfFnames(ii).name],  [dirnameDst, 'Colin/fw']);
-    genMultWavelengthSimInFluenceFiles([dirnameSrc, fluenceProfFnames(ii).name], 2, [dirnameDst, 'Colin/fw']);
+    genMultWavelengthSimInFluenceFiles([dirnameSrc, fluenceProfFnames(ii).name], 2);
 end
 
 copyFileToInstallation([dirnameSrc, 'projVoltoMesh_brain.mat'], [dirnameDst, 'Colin/fw']);
@@ -193,15 +199,14 @@ try
         k = dirnameDst=='/';
         dirnameDst(k)='\';
         
-        cmd = sprintf('call %s\\createShortcut.bat %s AtlasViewerGUI.exe', dirnameSrc(1:end-1), dirnameDst);
+        cmd = sprintf('call "%s\\createShortcut.bat" "%s" AtlasViewerGUI.exe', dirnameSrc(1:end-1), dirnameDst);
         system(cmd);
         
-        cmd = sprintf('call %s\\createShortcut.bat %s Homer2_UI.exe', dirnameSrc(1:end-1), dirnameDst);
+        cmd = sprintf('call "%s\\createShortcut.bat" "%s" Homer2_UI.exe', dirnameSrc(1:end-1), dirnameDst);
         system(cmd);
         
-        cmd = sprintf('call %s\\createShortcut.bat %s Test', dirnameSrc(1:end-1), dirnameDst(1:end-1));
-        system(cmd);
-        
+        cmd = sprintf('call "%s\\createShortcut.bat" "%s" Test', dirnameSrc(1:end-1), dirnameDst(1:end-1));
+        system(cmd);        
     elseif islinux()
         cmd = sprintf('sh %s/createShortcut.sh sh', dirnameSrc(1:end-1));
         system(cmd);
@@ -210,7 +215,7 @@ try
         system(cmd);
     end
 catch
-    msg{1} = sprintf('Error: Could not create Homer2 shortcuts on Desktop. Exiting installtion.');
+    msg{1} = sprintf('Error: Could not create Homer2 shortcuts on Desktop. Exiting installation.');
     menu([msg{:}], 'OK');
     return;    
 end
@@ -263,7 +268,7 @@ end
 
 
 % -------------------------------------------------------------------
-function r = copyFileToInstallation(src, dst, type, errtype)
+function copyFileToInstallation(src, dst, type)
 
 global h
 global nSteps
@@ -276,25 +281,41 @@ if ~exist('errtype', 'var')
     errtype = 'Error';
 end
 
-r = 0;
 try
+    % If src is one of several possible filenames, then src to any one of
+    % the existing files.
+    if iscell(src)
+        for ii=1:length(src)
+            if ~isempty(dir(src{ii}))
+                src = src{ii};
+                break;
+            end
+        end
+    end
+    
     assert(logical(exist(src, type)));
+    
+    % Check if we need to untar the file 
+    k = findstr(src,'.tar.gz');
+    if ~isempty(k)
+        untar(src,fileparts(src));
+        src = src(1:k-1);
+    end
+    
+    % Copy file from source to destination folder
+    fprintf('Copying %s to %s\n', src, dst);
     copyfile(src, dst);
+
     waitbar(iStep/nSteps, h); iStep = iStep+1;
     pause(1);
 catch ME
-    msg{1} = sprintf('Error at line 274 in setup.m: Could not copy %s ', src);
-    msg{2} = sprintf('to installation folder. %s', ME.message);
-    menu([msg{:}], 'OK');
-    if strcmpi(errtype, 'Warning')
-        r = -1;
-    else
-        close(h);
-        fprintf('Error at line 274 in setup.m: %s\n', ME.message);
-        rethrow(ME);
+    close(h);
+    printStack();
+    if iscell(src)
+        src = src{1};
     end
+    menu(sprintf('Error: Could not copy %s to installation folder.', src), 'OK');
+    pause(5);
+    rethrow(ME);
 end
-
-
-
 

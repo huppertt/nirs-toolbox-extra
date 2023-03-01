@@ -44,11 +44,12 @@ else
     if DEBUG
         mesh = isosurface(headvol.img,.9);
         mesh.vertices = [mesh.vertices(:,2) mesh.vertices(:,1) mesh.vertices(:,3)];
-        [mesh.vertices, mesh.faces] = meshresample(mesh.vertices, mesh.faces,.05);
+        [mesh.vertices, mesh.faces] = reduceMesh(mesh.vertices, mesh.faces,.05);
         headvol.mesh = mesh;
     end
 
     headvol.center = findcenter(headvol.img);
+    headvol.centerRotation = headvol.center;
 
 end
 

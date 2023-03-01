@@ -1,5 +1,8 @@
 function fwmodel = initFwmodel(handles, argExtern)
 
+if ~exist('handles','var')
+    handles=[];
+end
 if ~exist('argExtern','var')
     argExtern={};
 end
@@ -41,6 +44,7 @@ fwmodel = struct(...
       'colormin',[.80, .80, .80], ...
       'fluenceProfFnames',{[]}, ...
       'fluenceProf',repmat(initFluenceProf(), 2,1), ...
+      'fluenceProfDecim',repmat(initFluenceProf(), 1,1), ...
       'nFluenceProfPerFile', 50, ...
       'MNI_inMCspace', [0, 0, 0],...
       'normalizeFluence', true, ...
@@ -51,8 +55,18 @@ fwmodel = struct(...
       'checkCompatability',[], ...
       'isempty',@isempty_loc, ...         
       'prepObjForSave',[], ...
-      'voxPerNode',[] ...
+      'voxPerNode',[], ...
+      'platform','' ...
 );
+
+
+if ispc()
+    fwmodel.platform = 'Win';
+elseif ismac()
+    fwmodel.platform = 'Darwin';
+else
+    fwmodel.platform = 'Linux';
+end
 
 % Set handles specific to the current GUI
 if ~isempty(handles)
@@ -69,6 +83,15 @@ end
 
 % Find MC application 
 fwmodel = findMCapp(fwmodel, argExtern);
+
+% Make sure executable permission for MC app is set 
+if ismac() | islinux()
+    exefile = [fwmodel.mc_exepath, '/', fwmodel.mc_exename]; 
+    if exist(exefile,'file')==2
+        cmd = sprintf('chmod 755 %s', exefile);
+        system(cmd);
+    end
+end
 
 % Set MC options based on app type
 fwmodel = setMCoptions(fwmodel);
@@ -154,7 +177,9 @@ set(fwmodel.handles.editSelectChannelSensitivity,'string','0 0');
 function b = isempty_loc(fwmodel)
 
 b = false;
-if isempty(fwmodel.Adot)
+if isempty(fwmodel)
+    b = true;
+elseif isempty(fwmodel.Adot)
     b = true;
 end
 

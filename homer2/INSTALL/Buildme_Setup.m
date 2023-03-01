@@ -6,7 +6,7 @@ cd(dirname);
 inclList = {...
     '../PACKAGES/AtlasViewerGUI/ForwardModel' ...
 };
-Buildme('setup', inclList, {}, {'-e'});
+Buildme('setup', inclList, {});
 
 cd(dirnameInstall);
 

@@ -23,16 +23,16 @@
 %
 % $Id: ft_preamble_help.m 7123 2012-12-06 21:21:38Z roboos $
 
-if nargin==0
-  stack = dbstack('-completenames');
-  % stack(1) is this script
-  % stack(2) is the calling ft_postamble function
-  % stack(3) is the main FieldTrip function that we are interested in
-  stack = stack(3);
-  help(stack.name);
-  % throw the error as if it happened in the original function
-  msg.message     = 'This function requires one or multiple input arguments, please refer to the documentation above';
-  msg.identifier  = '';
-  msg.stack       = stack;
-  error(msg);
-end
+% if nargin==0
+%   stack = dbstack('-completenames');
+%   % stack(1) is this script
+%   % stack(2) is the calling ft_postamble function
+%   % stack(3) is the main FieldTrip function that we are interested in
+%   stack = stack(3);
+%   help(stack.name);
+%   % throw the error as if it happened in the original function
+%   msg.message     = 'This function requires one or multiple input arguments, please refer to the documentation above';
+%   msg.identifier  = '';
+%   msg.stack       = stack;
+%   error(msg);
+% end

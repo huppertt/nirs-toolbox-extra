@@ -30,7 +30,14 @@
 % TO DO:
 %
 
-function dodSpline = hmrMotionCorrectSpline(dod, t, SD, tInc, p)
+function dodSpline = hmrMotionCorrectSpline(dod, t, SD, tInc, p, turnon)
+
+if exist('turnon')
+   if turnon==0
+       dodSpline = dod;
+   return;
+   end
+end
 
 % if p outside its authorized range, set to 0.99
 if p>1 || p<0

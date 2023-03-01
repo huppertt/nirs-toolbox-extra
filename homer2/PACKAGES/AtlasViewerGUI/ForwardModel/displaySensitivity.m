@@ -71,10 +71,10 @@ if ishandles(fwmodel.handles.surf) & (val == fwmodel.menuoffset+1)
     fwmodel = enableFwmodelDisplay(fwmodel, 'on');
     fwmodel = setSensitivityColormap(fwmodel, hAxes);
     
-    probe = setProbeDisplay(probe,[],[],iCh);
+    setProbeDisplay(probe,[],[],iCh);
     
     set(pialsurf.handles.radiobuttonShowPial, 'value',0);
     uipanelBrainDisplay(pialsurf.handles.radiobuttonShowPial, {pialsurf, labelssurf});
-    
+   
 end
 

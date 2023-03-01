@@ -42,8 +42,9 @@ function probe_geometry_axes2_ButtonDownFcn(hObject, eventdata, handles)
            pos2 = optpos(k,:);
        end
        
-        % Check if a node was selected with the 
-       [foo j d]=nearest_point(optpos,p);
+        % Check if a node was selected with the
+        optposTmp = optpos; optposTmp(:,3)=0; pTmp=p; pTmp(:,3)=0; % did this because we don't select points in 3D
+       [foo j d]=nearest_point(optposTmp,pTmp);
        if ~isempty(j) && d<threshold(l)
            optselect(j) = ~optselect(j);
            if optselect(j)==1 && j<=noptorig

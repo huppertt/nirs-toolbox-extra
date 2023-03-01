@@ -1,30 +1,4 @@
 function varargout = ImageRecon(varargin)
-% IMAGERECON MATLAB code for ImageRecon.fig
-%      IMAGERECON, by itself, creates a new IMAGERECON or raises the existing
-%      singleton*.
-%
-%      H = IMAGERECON returns the handle to a new IMAGERECON or the handle to
-%      the existing singleton*.
-%
-%      IMAGERECON('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in IMAGERECON.M with the given input arguments.
-%
-%      IMAGERECON('Property','Value',...) creates a new IMAGERECON or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before ImageRecon_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to ImageRecon_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help ImageRecon
-
-% Last Modified by GUIDE v2.5 05-Oct-2015 21:10:58
-
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
@@ -41,7 +15,6 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
 
 
 % ---------------------------------------------------------------------------------
@@ -64,6 +37,8 @@ probe    = atlasViewer.probe;
 dirnameSubj = atlasViewer.dirnameSubj;
 
 imgrecon.handles.ImageRecon = hObject;
+pparts = getpathparts(dirnameSubj);
+subjName = pparts{end};
 
 if isempty(imgrecon.subjData)
     imgrecon = getImgRecon(imgrecon, dirnameSubj, fwmodel, pialsurf, probe);
@@ -74,7 +49,7 @@ if isempty(imgrecon.subjData)
 end
 
 % Display list of subject name
-set(handles.ListofSubjects,'String',imgrecon.subjData.name);
+set(handles.ListofSubjects,'String', subjName);
 
 % default exp condition
 set(handles.Condition,'String',1);
@@ -83,7 +58,7 @@ set(handles.Condition,'String',1);
 set(handles.time_range,'String',num2str([5 10]));
 
 % default alpha (regularization) for brain only reconstruction
-set(handles.alpha_brainonly,'String',1e3);
+set(handles.alpha_brainonly,'String',1e-2);
 
 % default alpha (regularization) for brain and scalp reconstruction
 set(handles.alpha_brain_scalp,'String',1e-2);
@@ -310,7 +285,7 @@ if cond<1 | cond>size(subjData.procResult.dcAvg,4)
 end
 
 %%%% Get the parameters from subject data for calculating Hb %%%%
-SD   = subjData.procInput.SD;
+SD   = subjData.SD;
 dc   = subjData.procResult.dcAvg;
 tHRF = subjData.procResult.tHRF;
 
@@ -447,17 +422,16 @@ end
 
 close(h); % close waitbar
 
-saveImgRecon(imgrecon, dirnameSubj);
+saveImgRecon(imgrecon);
 
 atlasViewer.imgrecon = imgrecon;
 
 
 % ---------------------------------------------------------------------------------
 function plotHb_Callback(hObject, eventdata, handles)
-
 % This function executes on button press in plotHb.
-
 global atlasViewer
+
 value1 = get(handles.brainonly, 'Value'); % 1 if brain only checked
 value2 = get(handles.brain_scalp, 'Value'); % 1 if brain and scalp checked
 
@@ -473,10 +447,12 @@ hold on;
 
 ylimits = str2num(get(handles.plotylimit,'String'));
 
-if value1 == 1;
-Aimg_conc = imgrecon.Aimg_conc;
-HbO = Aimg_conc.HbO;
-HbR = Aimg_conc.HbR;
+HbO = [];
+HbR = [];
+if value1 == 1
+    Aimg_conc = imgrecon.Aimg_conc;
+    HbO = Aimg_conc.HbO;
+    HbR = Aimg_conc.HbR;
 elseif value2 == 1;
     Aimg_conc_scalp = imgrecon.Aimg_conc_scalp;
     HbO = Aimg_conc_scalp.HbO;

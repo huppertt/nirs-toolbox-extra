@@ -52,7 +52,18 @@
 % two different ways (either using one tInc for all channels or using
 % tIncCh), compares the results and picks the good one for a specific channel. Meryem Oct 2017
 
-function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse_Ch_dual( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV, maxIter )
+function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse_Ch_dual( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV, maxIter, turnon )
+
+if exist('turnon')
+   if turnon==0
+       dN = d;
+       tInc = tIncMan;
+       svs = [];
+       tInc0 = [tIncMan];      
+   return;
+   end
+end
+
 
 %% tPCA by channel
 dorig = d;

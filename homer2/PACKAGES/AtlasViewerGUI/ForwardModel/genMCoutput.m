@@ -48,8 +48,20 @@ while q~=1
     fwmodel = existMCOutput(fwmodel, probe, dirnameSubj);     
     if q==1 && all(fwmodel.errMCoutput(:)==3) && ~isempty(probe.ml)
         enableDisableMCoutputGraphics(fwmodel, 'on');
-        menu('Now use the menu item ''Generate/Load Sensitivity Profile'' under the Forward Model menu to generate the sensitivity profile','OK');
+        postCompletionMsg(fwmodel, probe);
         break;
+        
+    elseif q==1 
+        if isempty(fwmodel.fluenceProf)
+            menu('Could not find MC output files.','OK');
+        else            
+            q = menu('Could not find MC output files but precalculated fluence profiles are available. Do you want to use them?', 'Yes','No');
+            if q==1
+                set(fwmodel.handles.menuItemLoadPrecalculatedProfile,'enable','on');
+                menu('Select menu option "Load Precalculated Profile" in the "Forward Model" menu to calculate sensitivity', 'OK');
+            end
+        end
+        
     elseif q==2
         % To avoid issues with spaces in path names we cd to the same folder where the batch file 
         % is and run with relative pathname. Example of problem with spaces in pathname: running 
@@ -94,7 +106,7 @@ while q~=1
                 err = false;
                 enableDisableMCoutputGraphics(fwmodel, 'on');
                 if strcmp(mode,'interactive')
-                	menu('Now use the menu item ''Generate/Load Sensitivity Profile'' under the Forward Model menu to generate the sensitivity profile','OK');
+                    postCompletionMsg(fwmodel, probe);
                     fwmodel.Adot = [];
                     fwmodel.Adot_scalp = [];
                 end
@@ -160,4 +172,22 @@ for ii=2:length(fileout)
        break;
    end
 end
+
+
+
+% -----------------------------------------------------------------
+function postCompletionMsg(fwmodel, probe)
+
+menu('Successfully finished generating MC output!', 'OK');
+if isempty(probe.ml)
+    msg{1} = sprintf('WARNING: May not be able to generate sensitivity profile because measurement list\n');
+    msg{2} = sprintf('is missing. This might be because the probe in the .SD or .nirs file for this subject does not\n');
+    msg{3} = sprintf('match the digitized probe in your digpts.txt file.\n');
+    enableDisableMCoutputGraphics(fwmodel, 'off');
+else
+    msg{1} = sprintf('Finished generating MC output. Now use the menu item ''Generate/Load Sensitivity Profile''\n');
+    msg{2} = sprintf('under the Forward Model menu to generate the sensitivity profile');
+    enableDisableMCoutputGraphics(fwmodel, 'on');
+end
+menu([msg{:}], 'OK');
 

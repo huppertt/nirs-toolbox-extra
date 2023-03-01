@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Working with PMI Datafiles</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+  <!-- Local style sheet -->
+  <style type="text/css">
+    /* table { width: 100%; } */
+  </style>
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Working with PMI Datafiles</h1>
+
+<p id="Description">The PMI toolbox normally uses its own data format
+(the <a href="PMIDataFormat.xhtml">PMI data format</a>) for storing
+experimental data along with a copy of the imaging geometry.  Included
+with the toolbox are routines for reading and writing data as PMI data
+formatted files.  Non-PMI data file formats are not supported
+natively, although users are, of course, free to write their own
+import/export routines.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table title="readPMIData.m" class="syntaxTable">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+    	[SD,data] = readPMIData(<i>datafile</i>);
+    </td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Inputs:</th>
+    <td class="varname">datafile</td>
+    <td>Name of the data file to be read</td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">SD</td>
+    <td><a href="pmi-sd.xhtml"><mat>SD</mat> structure</a>
+	  extracted from file</td>
+</tr>
+<tr><td class="varname">data</td>
+    <td>Data portion of file</td>
+</tr>
+</table>
+
+<table title="writePMIData.m" class="syntaxTable">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      writePMIData(<i>SD</i>, <i>data</i>, <i>filename</i>);
+    </td>
+</tr>
+<tr><th class="syntaxHead" rowspan="3">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><a href="pmi-sd.xhtml"><mat>SD</mat> structure</a> 
+		describing system</td>
+</tr>
+<tr><td class="varname">data</td>
+    <td>Data corresponding to 
+	<mat><a href="pmi-measlist.xhtml">SD.MeasList</a></mat></td>
+</tr>
+<tr><td class="varname">filename</td>
+    <td>Name of the file to be written.
+</td>
+</tr>
+<tr><th class="synatxHead" rowspan="1">Outputs:</th>
+    <td colspan="2" class="varname">none</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p><mat>readPMIData()</mat> loads data in the PMI data format from
+disk into matlab.  When the data is loaded in, the meta-data at the
+start of the file is parsed to fill in an 
+<mat><a href="pmi-sd.xhtml">SD</a></mat> structure, which is returned
+along with the data.</p>
+
+<p><mat>writePMIData()</mat> takes a matrix containing data and an
+<mat><a href="pmi-sd.xhtml">SD</a></mat> structure describing the data
+and writes the data to disk in a PMI formated datafile.  The
+measurement list in the <mat>SD</mat> must match the <mat>data</mat>
+matrix.  This would be used, for example, to convert data from an
+external file format into PMI data format.</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

@@ -25,31 +25,35 @@ if ~exist('handles','var')
               'pushbuttonZoomIn', [], ...
               'pushbuttonZoomOut', [], ...
               'editDegRotation', [], ...
+              'pushbuttonStandardViewsAnterior', [], ...
+              'pushbuttonStandardViewsPosterior', [], ...
+              'pushbuttonStandardViewsRight', [], ...
+              'pushbuttonStandardViewsLeft', [], ...
+              'pushbuttonStandardViewsSuperior', [], ...
+              'pushbuttonStandardViewsInferior', [], ...
+              'editViewAnglesAzimuth', [], ...
+              'editViewAnglesElevation', [], ...
               'axes',[] ...
         ), ...
         'zoominitfactor', 5, ...
         'zoomincr', 1.2, ...
         'rotation', struct('degrees',10), ...
         'lighting', ones(8,2), ...
-        'campos', [], ...
+        'azimuth',150, ...
+        'elevation', 30, ...
+        'cameratarget', [], ...
+        'cameraposition', [], ...
         'cameraupvector',[0 1 0], ...
         'mode', 'surface', ...
         'checkCompatability',@checkCompatability, ...
-        'prepObjForSave',[] ...
+        'prepObjForSave',[], ...
+        'errmsg', {{}} ...
         );
     return;
 end
 
 if ~exist('mode','var') | isempty(mode)
     mode=0;
-end
-
-if isunix() | ismac()
-    fontsize_RotLRBttn = 12;
-    fontsize_RotBttn = 14;
-elseif ispc()
-    fontsize_RotLRBttn = 10;
-    fontsize_RotBttn = 12;
 end
 
 axesv = struct(...
@@ -67,262 +71,74 @@ axesv = struct(...
                                  'menuItemLight8',handles.menuItemLight8, ...
                                  'menuItemViewOrigin',handles.menuItemViewOrigin, ...
                                  'lighting', [], ...
-                                 'pushbuttonRotVerticalLeft', [], ...
-                                 'pushbuttonRotVerticalRight', [], ...
-                                 'pushbuttonRotUp', [], ...
-                                 'pushbuttonRotDown', [], ...
-                                 'pushbuttonRotHorizontalLeft', [], ...
-                                 'pushbuttonRotHorizontalRight', [], ...
+                                 'pushbuttonRotVerticalLeft', handles.pushbuttonRotVerticalLeft, ...
+                                 'pushbuttonRotVerticalRight', handles.pushbuttonRotVerticalRight, ...
+                                 'pushbuttonRotUp', handles.pushbuttonRotUp, ...
+                                 'pushbuttonRotDown', handles.pushbuttonRotDown, ...
+                                 'pushbuttonRotHorizontalLeft', handles.pushbuttonRotHorizontalLeft, ...
+                                 'pushbuttonRotHorizontalRight', handles.pushbuttonRotHorizontalRight, ...
                                  'pushbuttonZoomIn', handles.pushbuttonZoomIn, ...
                                  'pushbuttonZoomOut', handles.pushbuttonZoomOut, ...
-                                 'editDegRotation', [], ...
+                                 'editDegRotation', handles.editDegRotation, ...
+                                 'pushbuttonStandardViewsAnterior', handles.pushbuttonStandardViewsAnterior, ...
+                                 'pushbuttonStandardViewsPosterior', handles.pushbuttonStandardViewsPosterior, ...
+                                 'pushbuttonStandardViewsRight', handles.pushbuttonStandardViewsRight, ...
+                                 'pushbuttonStandardViewsLeft', handles.pushbuttonStandardViewsLeft, ...
+                                 'pushbuttonStandardViewsSuperior', handles.pushbuttonStandardViewsSuperior, ...
+                                 'pushbuttonStandardViewsInferior', handles.pushbuttonStandardViewsInferior, ...
+                                 'editViewAnglesAzimuth', handles.editViewAnglesAzimuth, ...
+                                 'editViewAnglesElevation', handles.editViewAnglesElevation, ...
                                  'axes',[] ...
                                 ), ...
                'zoominitfactor', 5, ...
                'zoomincr', 1.2, ...
                'rotation', struct('degrees',10), ...
                'lighting', ones(8,2), ...
-               'campos', [], ...
+               'azimuth',150, ...
+               'elevation', 30, ...
+               'cameratarget', [], ...
+               'cameraposition', [], ...
                'cameraupvector',[0 1 0], ... 
                'mode', 'surface', ...
                'checkCompatability',[], ...
-               'prepObjForSave',[] ...
+               'prepObjForSave',[], ...
+               'errmsg', {{}} ...
               );
 
-if mode==0
-    persistent hPushbuttonRotVerticalLeft;
-    persistent hPushbuttonRotVerticalRight;
-    persistent hPushbuttonRotHorizontalLeft;
-    persistent hPushbuttonRotHorizontalRight;
-    persistent hPushbuttonRotUp;
-    persistent hPushbuttonRotDown;
-    persistent hEditDegRotation;
-else
-    hPushbuttonRotVerticalLeft=[];
-    hPushbuttonRotVerticalRight=[];
-    hPushbuttonRotHorizontalLeft=[];
-    hPushbuttonRotHorizontalRight=[];
-    hPushbuttonRotUp=[];
-    hPushbuttonRotDown=[];
-    hEditDegRotation=[];
-end
 
-hPanelRotate = handles.panelRotateZoomAxes;
-
-poffsetx = -.15;
-px1 = .180+poffsetx;
-px2 = .200+poffsetx;
-px3 = .400+poffsetx;
-px4 = .570+poffsetx;
-px5 = .620+poffsetx;
-
-poffsety = -.01;
-py1 = .100+poffsety;
-py2 = .400+poffsety;
-py3 = .700+poffsety;
-
-soffsetx = +.02;
-sx1 = .150+soffsetx;
-sx2 = .180+soffsetx;
-
-soffsety = -.02;
-sy1 = .250+soffsety;
-
-if ~ishandles(hPushbuttonRotVerticalLeft)
-    hPushbuttonRotVerticalLeft = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton', 'tag','pushbuttonRotVerticalLeft','string','Rot L',...
-                  'units','normalized','position', [px2 py3 sx2 sy1],'fontweight','bold',...
-                  'fontsize',fontsize_RotLRBttn,'enable','on','callback',@pushbuttonRotVerticalLeft_Callback);
-end
-
-if ~ishandles(hPushbuttonRotVerticalRight)
-    hPushbuttonRotVerticalRight = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton', 'tag','pushbuttonRotVerticalRight','string','Rot R',...
-                  'units','normalized','position', [px4 py3 sx2 sy1],'fontweight','bold',...
-                  'fontsize',fontsize_RotLRBttn,'enable','on','callback',@pushbuttonRotVerticalRight_Callback);
-end
-
-if ~ishandles(hPushbuttonRotUp)
-    hPushbuttonRotUp = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton', 'tag','pushbuttonRotUp',...
-                  'string','/\', 'units','normalized',...
-                  'position', [px3 py3 sx1 sy1],'fontweight','bold','fontsize',fontsize_RotBttn,...
-                  'fontweight','bold','enable','on','callback',@pushbuttonRotUp_Callback);
-end
-
-if ~ishandles(hPushbuttonRotDown)
-    hPushbuttonRotDown = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton', 'tag','pushbuttonRotDown',...
-                  'string','\/', 'units','normalized',...
-                  'position', [px3 py1 sx1 sy1],'fontweight','bold','fontsize',fontsize_RotBttn,...
-                  'fontweight','bold','enable','on','callback',@pushbuttonRotDown_Callback);
-end
-
-if ~ishandles(hPushbuttonRotHorizontalLeft)
-    hPushbuttonRotHorizontalLeft = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton',  'tag','pushbuttonRotHorizontalLeft',...
-                  'string','<','units','normalized',...
-                  'position',[px1 py2 sx1 sy1],'fontweight','bold','fontsize',fontsize_RotBttn,'enable','on',...
-                  'fontweight','bold','callback',@pushbuttonRotHorizontalLeft_Callback);
-end
-
-
-if ~ishandles(hPushbuttonRotHorizontalRight)
-    hPushbuttonRotHorizontalRight = ...
-        uicontrol('parent',hPanelRotate, 'style','pushbutton', 'tag','pushbuttonRotHorizontalRight',...
-                  'string','>', 'units','normalized',...
-                  'position', [px5 py2 sx1 sy1],'fontweight','bold','fontsize',fontsize_RotBttn,'enable','on',...
-                  'fontweight','bold','callback',@pushbuttonRotHorizontalRight_Callback);
-end
-
-if ~ishandles(hEditDegRotation)
-    hEditDegRotation = ...
-        uicontrol('parent',hPanelRotate,'style','edit','tag','editDegRotation',...
-                  'string',num2str(axesv.rotation.degrees),'units','normalized',...
-                  'position',[px3 py2 sx1 sy1],'enable','on','callback',@editDegRotation_Callback);              
-end
-
-
+          
+axesv(1).errmsg{1} = sprintf('This volume is missing orientation setting. To use this function the head orientation has to be set.\nUse the Find Ref Pts menu option in the Tools menu to select reference points to set head orientation');          
+          
+          
 cla(handles.axesSurfDisplay,'reset');
 set(handles.axesSurfDisplay,{'xgrid','ygrid','zgrid'},{'on','on','on'});
 set(handles.axesSurfDisplay,'visible','off');
 set(handles.axesSurfDisplay,'cameraviewangle', axesv.zoominitfactor);
 
-axesv.rotation.degrees                     = str2num(get(hEditDegRotation,'string'));
+set(handles.pushbuttonRotVerticalLeft, 'callback', @pushbuttonRotVerticalLeft_Callback);
+set(handles.pushbuttonRotHorizontalLeft, 'callback', @pushbuttonRotHorizontalLeft_Callback);
+set(handles.pushbuttonRotDown, 'callback', @pushbuttonRotDown_Callback);
+set(handles.pushbuttonRotHorizontalRight, 'callback', @pushbuttonRotHorizontalRight_Callback);
+set(handles.pushbuttonRotUp, 'callback', @pushbuttonRotUp_Callback);
+set(handles.pushbuttonRotVerticalRight, 'callback', @pushbuttonRotVerticalRight_Callback);
+set(handles.editDegRotation, 'callback', @editDegRotation_Callback);
+set(handles.pushbuttonZoomIn, 'callback', @buttonZoomIn_Callback);
+set(handles.pushbuttonZoomOut, 'callback', @buttonZoomOut_Callback);
+
+% Set axes pan style to camera. Unfortunately setAxes3DPanAndZoomStyle only
+% exists since R2016a
+if verGreaterThanOrEqual('matlab','9.0')
+    setAxes3DPanAndZoomStyle(zoom(handles.axesSurfDisplay), handles.axesSurfDisplay, 'camera')
+end
+
+
+axesv.rotation.degrees                     = str2num(get(handles.editDegRotation,'string'));
 axesv.handles.panelRotate                  = handles.panelRotateZoomAxes;
-axesv.handles.pushbuttonRotVerticalLeft    = hPushbuttonRotVerticalLeft;
-axesv.handles.pushbuttonRotVerticalRight   = hPushbuttonRotVerticalRight;
-axesv.handles.pushbuttonRotUp              = hPushbuttonRotUp;
-axesv.handles.pushbuttonRotDown            = hPushbuttonRotDown;
-axesv.handles.pushbuttonRotHorizontalLeft  = hPushbuttonRotHorizontalLeft;
-axesv.handles.pushbuttonRotHorizontalRight = hPushbuttonRotHorizontalRight;
-axesv.handles.editDegRotation              = hEditDegRotation;
 axesv.handles.axesSurfDisplay              = handles.axesSurfDisplay;
 
 setappdata(axesv.handles.axesSurfDisplay, 'hOrigin',[]);
 setappdata(axesv.handles.axesSurfDisplay, 'hViewOrigin',handles.menuItemViewOrigin);
 
 axes(axesv.handles.axesSurfDisplay);
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotVerticalLeft_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotVerticalLeft)
-        if hObject==axesv(ii).handles.pushbuttonRotVerticalLeft
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotVerticalLeft(ax);
-end
-
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotVerticalRight_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotVerticalRight)
-        if hObject==axesv(ii).handles.pushbuttonRotVerticalRight
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotVerticalRight(ax);
-end
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotUp_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotUp)
-        if hObject==axesv(ii).handles.pushbuttonRotUp
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotUp(ax);
-end
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotDown_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotDown)
-        if hObject==axesv(ii).handles.pushbuttonRotDown
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotDown(ax);
-end
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotHorizontalLeft_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotHorizontalLeft)
-        if hObject==axesv(ii).handles.pushbuttonRotHorizontalLeft
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotHorizontalLeft(ax);
-end
-
-
-% --------------------------------------------------------------------
-function pushbuttonRotHorizontalRight_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.pushbuttonRotHorizontalRight)
-        if hObject==axesv(ii).handles.pushbuttonRotHorizontalRight
-            ax=axesv(ii);
-        end
-    end
-end
-if ~isempty(ax)
-    rotHorizontalRight(ax);
-end
-
-
-
-% --------------------------------------------------------------------
-function editDegRotation_Callback(hObject, eventdata, handles)
-global atlasViewer;
-axesv = atlasViewer.axesv;
-ax=[];
-for ii=1:length(axesv)
-    if ishandles(axesv(ii).handles.editDegRotation)
-        if hObject==axesv(ii).handles.editDegRotation            
-            val = str2num(get(hObject,'string'));
-            axesv(ii).rotation.degrees = val;
-            atlasViewer.axesv(ii) = axesv(ii);
-        end
-    end
-end
-
 
 

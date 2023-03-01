@@ -15,7 +15,7 @@ function [vol] = surf_file2vol(surfname, vol_dims, T)
     Dz = vol_dims(3);
 
     %%%% Get volumes from closed surfaces
-    [v f] = readsurf_trans(surfname, T);
+    [v, f] = readsurf_trans(surfname, T);
     surf.faces = f;
     surf.vertices = v;
 
@@ -24,7 +24,7 @@ function [vol] = surf_file2vol(surfname, vol_dims, T)
     xmax = max(ceil(max(v(:,1))), Dx);
     ymax = max(ceil(max(v(:,2))), Dy);
     zmax = max(ceil(max(v(:,3))), Dz);
-    [X Y Z] = meshgrid(1:1:xmax, 1:1:ymax, 1:1:zmax);
+    [X, Y, Z] = meshgrid(1:1:xmax, 1:1:ymax, 1:1:zmax);
     vol = surface2volume(surf, {X, Y, Z});
 
 

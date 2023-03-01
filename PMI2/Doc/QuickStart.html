@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'
+                       'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>PMI Toolbox Quick Start</title>
+  <meta name="Description" content="Installation Guide for PMI Toolbox" />
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <base href="http://www.nmr.mgh.harvard.edu/~jstott/PMI/" />
+  <link rel="Start"     href="pmidoc/index.xhtml" />
+  <link rel="Contents"  href="pmidoc/pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmidoc/pmi-gpl.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+  <!-- Local style sheet -->
+  <style type="text/css">
+    h1 { text-align: center }
+    h2 { text-align: left   }
+  </style>
+</head>
+<body>
+<h1>Welcome to the PMI Toolbox!</h1>
+
+<p>This file is to get you started using the PMI Toolbox.  Additional (albeit
+still sketchy) documentation can be in the Doc directory of the toolbox,
+along with some sample code.</p>
+
+<h2>Step 1: Download the toolbox</h2>
+
+<p>The toolbox source is available on-line at
+<a href="http://www.nmr.mgh.harvard.edu/~jstott/PMI/">
+http://www.nmr.mgh.harvard.edu/~jstott/PMI/</a>.  Copies of the
+program documentation are available there as well.</p>
+
+<h2>Step 2: Install the toolbox</h2>
+
+<p>After downloading the toolbox, unpack it to a convenient location (I
+like either &quot;~/matlab/PMI2&quot; or with the other matlab
+toolboxes).  The PMI toolbox is distributed as a gzip-ed tar file.  To
+unpack it under Unix, type<br />
+<pre>
+    gunzip -c PMI2.tgz | tar xvf -
+</pre>
+which will create a PMI2 directory inside the current directory and
+install the toolbox there.</p>
+
+<p>Under Windows, use "WinZip" or one of its clones.</p>
+
+<p>The actual location of the directory containing the toolbox is
+unimportant; the configuration described below handles all thte
+necessary details.</p>
+
+<h2>Step 3: Build the MEX files (optional)</h2>
+
+<p>Under Unix systems, the time-domain forward problem and a small
+number of other key routines have been re-written in C for extra
+accuracy and efficiency (a parallel set of Matlab routines are also
+available, should you choose not to use the C routines).  This
+code must be compiled before it can be used.  The source code can be
+found in the &quot;*/MEX&quot; directories throughout the toolbox;
+there is a Makefile in each directory, as well as one in the root
+directory of the Toolbox.  To build the compiled files, edit the
+compiler flags and the paths in the top-level Makefile to match your
+own system and type &quot;make&quot;.
+</p>
+
+<p>
+Note: the time-domain C code uses routines from the <a
+href="http://www.gnu.org/software/gsl/gsl.html">GNU Scientific
+Library</a> (GSL) to handle the numerical integration.  The GSL must
+be installed somewhere in your system for the PMI code to compile
+correctly.</p>
+
+<p>Under Windows systems, I have not figured out how to get the GSL to
+build.  Given a working copy of the GSL though, (check the URL above,
+there may be a pre-compiled version available by now), it should be
+straight-forward to build the time-domain MEX code under windows as
+well, although I have yet to verify this.</p>
+
+<h2>Step 4: Configuring Matlab</h2>
+
+<p>Before you can use the toolbox routines, you must tell Matlab where
+to find them.  This is done by calling pmipath (found inside the PMI
+Toolbox directory), which sets up all the appropriate paths.  pmipath
+takes a single argument, which is the base directory of the toolbox.
+On my computer, I type<br />
+<pre>
+% pmipath('/homes/monte/1/home/jstott/matlab/PMI2');
+</pre>
+to configure the paths.  Since this is rather cumbersome to type every
+time, I recommend putting the call to pmipath in your startup.m file,
+which will set up the path automatically every time you start Matlab.</p>
+
+<h2>Step 5: Use the PMI Toolbox</h2>
+
+<p> You are now ready to begin using the PMI toolbox.  Look in
+&quot;PMI2/Doc&quot; for additional sample code and toolbox
+documentation.</p>
+</body>
+</html>
+

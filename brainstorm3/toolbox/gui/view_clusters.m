@@ -1,16 +1,22 @@
-function view_clusters(DataFiles, iClusters, hFig)
+function [hFig, iDS, iFig] = view_clusters(DataFiles, iClusters, hFig, ClustersOptions)
 % VIEW_CLUSTERS: Display time series for all the clusters selected in the JList.
 %
-% USAGE:  view_clusters()                     : Display selected data file time series for selected clusters
-%         view_clusters(DataFiles)            : Display input data file time series for selected clusters
-%         view_clusters(DataFiles, iClusters) : Display input data file time series for input clusters
-%         view_clusters(DataFiles, iClusters, hFig) : Specify the figure to use for the display
+% USAGE:  [hFig, iDS, iFig] = view_clusters(DataFiles, iClusters=[selected], hFig=[], ClustersOptions=[]) : Specify the figure to use for the display
+%
+% INPUTS:
+%    - DataFiles : String of cell-array of input data files
+%    - iClusters : Indices of the clusters to display
+%    - hFig      : Re-use existing figure
+%    - ClustersOptions: struct()
+%        |- function          : {'Mean','Max','Power','PCA','FastPCA', 'All'} ?
+%        |- overlayClusters   : {0, 1}
+%        |- overlayConditions : {0, 1}
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -24,11 +30,15 @@ function view_clusters(DataFiles, iClusters, hFig)
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2009-2014
+% Authors: Francois Tadel, 2009-2019
 
 global GlobalData;  
 
 %% ===== GET CLUSTERS LIST =====
+% Get clusters options from GUI
+if (nargin < 4) || isempty(ClustersOptions)
+    ClustersOptions = [];
+end
 % No figure in input: create a new one
 if (nargin < 3) || isempty(hFig)
     hFig = [];
@@ -80,7 +90,9 @@ StudyFile      = '*';
 %    |- function          : {'Mean','Max','Power','PCA','FastPCA', 'All'} ?
 %    |- overlayClusters   : {0, 1}
 %    |- overlayConditions : {0, 1}
-ClustersOptions = panel_cluster('GetClusterOptions');
+if isempty(ClustersOptions)
+    ClustersOptions = panel_cluster('GetClusterOptions');
+end
 if (length(iClusters) == 1)
     ClustersOptions.overlayClusters = 0;
 end
@@ -89,6 +101,7 @@ if (length(DataFiles) == 1)
 end
 % Initialize data to display
 clustersActivity = cell(length(DataFiles), length(iClusters));
+clustersStd      = cell(length(DataFiles), length(iClusters));
 clustersLabels   = cell(length(DataFiles), length(iClusters));
 axesLabels       = cell(length(DataFiles), length(iClusters));
 % Process each Data file
@@ -139,14 +152,28 @@ for iFile = 1:length(DataFiles)
         % Get time indices
         [TimeVector, iTime] = bst_memory('GetTimeVector', iDS, [], 'UserTimeWindow');
         % Get data (over current time window)
-        DataToPlot = bst_memory('GetRecordingsValues', iDS, iChannel, iTime);       
+        [DataToPlot, DataStd] = bst_memory('GetRecordingsValues', iDS, iChannel, iTime);       
         % Compute the cluster values
         if ~isStat
             ClusterFunction = sClusters(k).Function;
         else
             ClusterFunction = 'stat';
         end
+        separator = strfind(ClusterFunction, '+');
+        if ~isempty(separator)
+            StdFunction     = ClusterFunction(separator+1:end);
+            ClusterFunction = ClusterFunction(1:separator-1);
+        else
+            StdFunction = [];
+        end
         clustersActivity{iFile,k} = bst_scout_value(DataToPlot, ClusterFunction);
+        if ~isempty(StdFunction)
+            clustersStd{iFile, k} = bst_scout_value(DataToPlot, StdFunction);
+        elseif ~isempty(DataStd) && all(size(clustersActivity{iFile,k}) == size(DataStd))
+            clustersStd{iFile, k} = DataStd;
+        else
+            clustersStd{iFile, k} = [];
+        end
 
         % === AXES LABELS ===
         % Format: SubjectName/Cond1/.../CondN/(DataComment)/(ClusterName)
@@ -187,6 +214,7 @@ if ((max(nbTimes) > 2) && any(nbTimes == 2))
     iCellToExtend = find(nbTimes == 2);
     for i = 1:length(iCellToExtend)
         clustersActivity{iCellToExtend(i)} = repmat(clustersActivity{iCellToExtend(i)}(:,1), [1,max(nbTimes)]);
+        clustersStd{iCellToExtend(i)} = repmat(clustersStd{iCellToExtend(i)}(:,1), [1,max(nbTimes)]);
     end
 end
 
@@ -200,6 +228,7 @@ if (~ClustersOptions.overlayClusters && ~ClustersOptions.overlayConditions)
     % One graph for each line => Ngraph, Nclusters*Ncond
     % Clusters activity = cell-array {1, Ngraph} of doubles [1,Nt]
     clustersActivity = clustersActivity(:)';
+    clustersStd = clustersStd(:)';
     % Axes labels (subj/cond) = cell-array of strings {1, Ngraph}
     axesLabels = axesLabels(:)';
     % Clusters labels = cell-array of strings {1, Ngraph}
@@ -213,6 +242,7 @@ elseif (ClustersOptions.overlayClusters && ClustersOptions.overlayConditions)
     nbTraces = numel(clustersActivity);
     % Clusters activity = double [Nlines, Nt] 
     clustersActivity = cat(1, clustersActivity{:});
+    clustersStd = cat(1, clustersStd{:});
     % Clusters labels = cell-array {Nlines}
     % => "clusterName @ subject/condition"
     for iTrace = 1:nbTraces
@@ -235,8 +265,10 @@ elseif ClustersOptions.overlayClusters
     % Clusters activity = cell-array {1, Ncond} of doubles [Nclusters, Nt]
     for i = 1:size(clustersActivity,1)
         clustersActivityTmp(i) = {cat(1, clustersActivity{i,:})};
+        clustersStdTmp(i) = {cat(1, clustersStd{i,:})};
     end
     clustersActivity = clustersActivityTmp;
+    clustersStd = clustersStdTmp;
     % Axes labels (subj/cond) = cell-array of strings {1, Ncond} 
     axesLabels   = axesLabels(:,1)';
     % Clusters labels = cell-array of strings {Ncluster, Ncond} 
@@ -249,8 +281,10 @@ elseif ClustersOptions.overlayConditions
     % Clusters activity = cell-array {1, Ncluster} of doubles [Ncond, Nt]
     for j = 1:size(clustersActivity,2)
         clustersActivityTmp(j) = {cat(1, clustersActivity{:,j})};
+        clustersStdTmp(j) = {cat(1, clustersStd{:,j})};
     end
     clustersActivity = clustersActivityTmp;
+    clustersStd = clustersStdTmp;
     % Axes labels (cluster names @ common_subject/cond part) = cell-array of strings {1, Ncluster} 
     tmpAxesLabels = axesLabels;
     axesLabels = clustersLabels(1,:);
@@ -265,7 +299,7 @@ end
  
 %% ===== CALL DISPLAY FUNCTION ====
 % Plot time series
-hFig = view_timeseries_matrix(DataFiles{1}, clustersActivity, [], ['$' Modality], axesLabels, clustersLabels, clustersColors, hFig);
+[hFig, iDS, iFig] = view_timeseries_matrix(DataFiles{1}, clustersActivity, [], ['$' Modality], axesLabels, clustersLabels, clustersColors, hFig, clustersStd);
 % Store results files in figure appdata
 setappdata(hFig, 'DataFiles', DataFiles);
 setappdata(hFig, 'iClusters', iClusters);

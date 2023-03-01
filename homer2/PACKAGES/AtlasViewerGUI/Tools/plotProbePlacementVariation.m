@@ -6,43 +6,50 @@ function plotProbePlacementVariation()
 %   Plots original source-detector geometries versus digitized probe(s)
 %   Plots original optode locations and the digitized mean error distribution
 
+% NOTE: There is no need to have a special external file (in this case 
+% atlasViewer_SDdesign.mat) where the design probe is stored and needs to be 
+% loaded. We really should use the existing AV framework to do this. 
+% Everything in AV exists in the context of a subject and it's associated 
+% folder. That subject can also be a group as well if it's folder has AV 
+% compatible subject folders under it. So the design probe IS the probe of 
+% whichever subject (or in this case, group subject) is trying to perform
+% this operation, i.e. generating the probe variability stats for it's subject 
+% probes. Therefore, the design probe is simply, the current subject's probe, 
+% i.e., atlasViewer.probe. This probe was either imported as you would any 
+% other probe or loaded at AV startup through atlasViewer.mat both within 
+% the realm normal AV operations and AV design. -- JD 10/24/2018
+
 global atlasViewer
 global tableData
-global hTbl;
+global hTbl
 
-labelssurf = atlasViewer.labelssurf;
-headvol    = atlasViewer.headvol;
-probe      = atlasViewer.probe;
-
+tableData = [];
+hTbl = [];
 f  = atlasViewer.headsurf.mesh.faces;
 v  = atlasViewer.headsurf.mesh.vertices;
 fp = atlasViewer.pialsurf.mesh.faces;
 vp = atlasViewer.pialsurf.mesh.vertices;
 
+% Sanity check that the design probe exists. If not we have 
+% nothing to work with. 
+if isempty(atlasViewer.probe.optpos_reg)
+    menu('Design probe for this subject does not exist or is not registered to head','OK');
+    return;
+end
+
+% Find atlasViewer.mat files located one subdirectory deep.
+[subjDirs, errmsg] = findSubjDirs();
+nSubj = length(subjDirs);
+
+% Make sure we have at least 2 subjects
+if errCheck(subjDirs, errmsg) < 0
+    return;
+end
+
 if leftRightFlipped(atlasViewer.refpts)
     axes_order = [2,1,3];
 else
     axes_order = [1,2,3];
-end
-
-% Find atlasViewer.mat files located one subdirectory deep.
-folderContents = dir;
-numberOfObjects = length(folderContents);
-countSubjects = 0;
-for i = 3:1:numberOfObjects
-    if (folderContents(i).isdir ~= false)
-        tempString = strcat(folderContents(i).name, '/atlasViewer.mat');
-        if (exist(tempString, 'file') ~= false)
-            countSubjects = countSubjects + 1;
-            subFiles{countSubjects} = tempString;
-        end
-    end
-end
-
-% Make sure we have at least 2 subjects
-if countSubjects<2
-    menu('Warning: need at least 2 subjects with atlasViewer.mat file to calculate probe placement variation.', 'OK');
-    return;
 end
 
 wd = cd();
@@ -64,16 +71,6 @@ hFigHeadDisp = getHeadFigures(v, f, vp, fp, axes_order);
 
 if (userSelection == 2)
         
-    if ~exist('atlasViewer_SDdesign.mat','file')
-        menu('You need the file atlasViewer_SDdesign.mat that contains the original probe design registered to the surface copied into the root of the group folder.','Okay');
-        return;
-    end
-    
-    % Setup and Plot Atlas
-    atlas = load('atlasViewer_SDdesign.mat', '-mat'); % An atlasViewer.mat 
-    % file that contains the original probe design registered to the surface
-    % copied into the root of the group folder
-
     % Head Surface
     fN = trisurfnorm(v, f); % This function is provided in a separate file
 
@@ -92,16 +89,16 @@ if (userSelection == 2)
 
     % Define the colors to be used for the optodes
     colors1 = colormap;
-    for i = 1:1:countSubjects
-        patchColor(i,:) = colors1(1+round(63*i/countSubjects),:);
+    for i = 1:1:nSubj
+        patchColor(i,:) = colors1(1+round(63*i/nSubj),:);
     end
 
     % Translate each subject's optode positions onto a common atlas and plot
-    rotEig(1:3,1:3,1:countSubjects) = 0;
+    rotEig(1:3,1:3,1:nSubj) = 0;
     optN = 100; % Temporary value in case the following loop doesn't run
-    for s = 1:1:countSubjects
+    for s=1:nSubj
         % Load Subject Data, Transform Probe, Plot Circles Normal to Surface
-        sub = load(subFiles{s}, '-mat');
+        sub = load(subjDirs{s}, '-mat');
         p = sub.probe.optpos_reg; % Original registered optode positions
         p(:, 4) = 1;
         T = sub.headvol.T_2mc; % Translation matrix to individual subject space
@@ -174,7 +171,7 @@ if (userSelection == 2)
     
     % Plot the original probe design (black)
     p2n(1:optN, 1:3) = 0; % Create an array to store the normal vector from the common atlas surface at each optode position
-    p2 = atlas.probe.optpos_reg; % Original probe design
+    p2 = atlasViewer.probe.optpos_reg; % Original probe design
     for i=1:1:optN
         vmin = 1e99; vidx = 0;
         for j = 1:1:size(v, 1)
@@ -202,15 +199,15 @@ if (userSelection == 2)
     scale(3) = mean(rotEig(3,3,:)); % Find the average scaling factor in the Z-direction
 
     p2probeDesign(1:optN,1:3) = 0;
-    p2error(1:optN,1:countSubjects) = 0;
-    p2vec(1:optN,1:3,1:countSubjects) = 0;
+    p2error(1:optN,1:nSubj) = 0;
+    p2vec(1:optN,1:3,1:nSubj) = 0;
     p2meanError(1:optN) = 0;
     
     for i = 1:1:optN
         for j = 1:1:3
-            p2probeDesign(i,j) = atlas.probe.optpos_reg(i,j); % Original probe design
+            p2probeDesign(i,j) = atlasViewer.probe.optpos_reg(i,j); % Original probe design
         end
-        for j = 1:1:countSubjects
+        for j = 1:1:nSubj
             p2error(i,j) = sqrt((((p2all(i,1,j)-p2probeDesign(i,1))) / scale(1))^2 + ...
                 (((p2all(i,2,j)-p2probeDesign(i,2))) / scale(2))^2 + ...
                 (((p2all(i,3,j)-p2probeDesign(i,3))) / scale(3))^2); % Calculate the Euclidean position error and correct for scaling
@@ -226,21 +223,11 @@ if (userSelection == 2)
     figure(hFigHeadDisp(2));
     
     % Create a color bar that displays the standard deviation value associated with each color
-    colorbar('yticklabel', {0.10 * round(0*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(1*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(2*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(3*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(4*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(5*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(6*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(7*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(8*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(9*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError)), ...
-        0.10 * round(10*((max(p2meanError)-min(p2meanError))))+0.10*round(10*min(p2meanError))});
-
+    setColorBar(p2meanError);
+                        
     % Plot the original probe design (black)
     p2n(1:optN, 1:3) = 0; % Create an array to store the normal vector from the common atlas surface at each optode position
-    p2 = atlas.probe.optpos_reg; % Original probe design
+    p2 = atlasViewer.probe.optpos_reg; % Original probe design
     for i=1:1:optN
         vmin = 1e99; vidx = 0;
         for j = 1:1:size(v, 1)
@@ -289,8 +276,8 @@ if (userSelection == 2)
         end
         p2n(i, :) = p2n(i, :) / size(lst, 1);
         
-        p2proj(1:optN,1:3,1:countSubjects) = 0;
-        for j=1:1:countSubjects
+        p2proj(1:optN,1:3,1:nSubj) = 0;
+        for j=1:1:nSubj
             p2projT = vrrotvec2mat_copy(vrrotvec_copy(p2n(i, :), [0 0 1]));
             p2proj(i,:,j) = transpose(p2projT * transpose(cross(p2n(i,:), cross(p2vec(i,:,j), p2n(i,:)))));
         end
@@ -331,7 +318,7 @@ else
     %atlas = load('atlasViewer.mat', '-mat'); % An unmodified atlasViewer.mat file 
     % for the common head volume. If possible, pull this from the Homer2 package.
 
-    atlas = load(subFiles{1}, '-mat');
+    atlas = load(subjDirs{1}, '-mat');
     T = atlas.headvol.T_2mc; % Translation matrix to individual subject space
     Ti(1:4, 1:4) = inv(T(1:4, 1:4)); % Inverse produces translation to common atlas space
 
@@ -355,17 +342,17 @@ else
 
     % Define the colors to be used for the optodes
     colors1 = colormap;
-    for i = 1:1:countSubjects
-        patchColor(i,:) = colors1(1+round(63*i/countSubjects),:);
+    for i = 1:1:nSubj
+        patchColor(i,:) = colors1(1+round(63*i/nSubj),:);
     end
 
     % Translate each subject's optode positions onto a common atlas and plot
-    rotEig(1:3,1:3,1:countSubjects) = 0;
+    rotEig(1:3,1:3,1:nSubj) = 0;
     optN = 100; % Temporary value in case the following loop doesn't run
     nSources = 0;
-    for s = 1:1:countSubjects
+    for s = 1:1:nSubj
         % Load Subject Data, Transform Probe, Plot Circles Normal to Surface
-        sub = load(subFiles{s}, '-mat');
+        sub = load(subjDirs{s}, '-mat');
         nSources = sub.probe.nsrc;
         p = sub.probe.optpos_reg; % Original registered optode positions
         p(:, 4) = 1;
@@ -437,21 +424,21 @@ else
     scale(3) = mean(rotEig(3,3,:)); % Find the average scaling factor in the Z-direction
 
     p2mean(1:optN,1:3) = 0;
-    p2error(1:optN,1:countSubjects) = 0;
+    p2error(1:optN,1:nSubj) = 0;
     p2sd(1:optN) = 0;
     for i = 1:1:optN
         for j = 1:1:3
             p2mean(i,j) = mean(p2all(i,j,:)); % Calculate the mean optode locations across subjects
         end
-        for j = 1:1:countSubjects
+        for j = 1:1:nSubj
             p2error(i,j) = sqrt((((p2all(i,1,j)-p2mean(i,1))) / scale(1))^2 + ...
                 (((p2all(i,2,j)-p2mean(i,2))) / scale(2))^2 + ...
                 (((p2all(i,3,j)-p2mean(i,3))) / scale(3))^2); % Calculate the Euclidean position error and correct for scaling
         end
-        for j = 1:1:countSubjects
+        for j = 1:1:nSubj
             p2sd(i) = p2sd(i) + p2error(i,j)^2; % Accumulate Variance
         end
-        p2sd(i) = sqrt(p2sd(i) / countSubjects); % Standard Deviation, scaled to millimeters
+        p2sd(i) = sqrt(p2sd(i) / nSubj); % Standard Deviation, scaled to millimeters
     end
     
     filename = fopen('probes_mean.txt', 'wt');
@@ -473,17 +460,7 @@ else
     figure(hFigHeadDisp(2));
 
     % Create a color bar that displays the standard deviation value associated with each color
-    colorbar('yticklabel', {0.10 * round(0*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(1*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(2*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(3*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(4*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(5*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(6*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(7*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(8*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(9*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd)), ...
-        0.10 * round(10*((max(p2sd)-min(p2sd))))+0.10*round(10*min(p2sd))});
+    setColorBar(p2sd);
 
     % Plot patches at mean of each probe location
     colors = colormap; % Create a matrix using the current color map for pulling color associated with each value
@@ -525,23 +502,19 @@ else
         'units','normalized', 'Position',[0,0,.9,1]);
 
     
-    if size(sub.probe.srcpos,1) == size(probe.srcpos,1)
-        if size(sub.probe.detpos,1) == size(probe.detpos,1)
+    if size(sub.probe.srcpos,1) == size(atlasViewer.probe.srcpos,1)
+        if size(sub.probe.detpos,1) == size(atlasViewer.probe.detpos,1)
             
             p2all_orig_gmean = [mean(p2all_orig(:,1,:),3), mean(p2all_orig(:,2,:),3), mean(p2all_orig(:,3,:),3)];
-            probe.optpos_reg_mean = p2all_orig_gmean;
-            probe = findMeasMidPts(probe,'group');            
+            atlasViewer.probe.optpos_reg_mean = p2all_orig_gmean;
+            atlasViewer.probe = findMeasMidPts(atlasViewer.probe,'group');            
 
         end
     end
     
 end
 
-atlasViewer.probe = probe;
 cd(wd)
-
-
-
 
 
 
@@ -570,7 +543,6 @@ set(hTbl, 'data', tbl);
 
 
 
-
 % -------------------------------------------------------------------------
 function lights = setLighting(obj, hAxes)
 
@@ -584,7 +556,6 @@ if isstruct(obj)
 else
     v = obj;
 end
-
 
 %%% Position; set up light in all 8 corners so that no part 
 %%% of the head is in the dark
@@ -659,4 +630,79 @@ for ii=1:2
     axis image
     view(-90, 0)
 end
+
+
+
+% -------------------------------------------------------
+function [subjDirs, errstr] = findSubjDirs()
+
+subjDirs = {};
+
+kk=1;
+errstr = '';
+files = dir;
+for ii=1:length(files)
+    if ~files(ii).isdir
+        continue;
+    end
+    if strcmp(files(ii).name, '.')
+        continue;
+    end
+    if strcmp(files(ii).name, '..')
+        continue;
+    end
+    if exist([files(ii).name, '/atlasViewer.mat'], 'file')==2
+        load([files(ii).name, '/atlasViewer.mat']);
+        if isempty(probe.optpos_reg)
+            if ~isempty(probe.optpos)
+                if isempty(errstr)
+                    errstr = sprintf('%s/\n', files(ii).name);
+                else
+                    errstr = sprintf('%s%s/\n', errstr, files(ii).name);
+                end
+            end
+            continue;
+        end
+        subjDirs{kk} = [files(ii).name, '/atlasViewer.mat'];
+        kk=kk+1;
+    end
+end
+
+
+
+
+% ----------------------------------------------------------------
+function r = errCheck(subjDirs, errmsg)
+
+r = 0;
+if length(subjDirs)<2
+    msg{1} = sprintf('Warning: need at least 2 subjects with atlasViewer.mat and\n');
+    msg{2} = sprintf('registered probe to calculate probe placement variation.\n');    
+    menu([msg{:}], 'OK');
+    if ~isempty(errmsg)
+        msg2{1} = sprintf('The following subject folders have probes that are NOT registered\n');
+        msg2{2} = sprintf('to the head surface :\n\n');
+        msg2{3} = sprintf('%s\n', errmsg);
+        msg2{4} = sprintf('Check that all subject probes have been registered to the head\n');
+        msg2{5} = sprintf('surface.\n');
+        menu([msg2{:}], 'OK');
+    end
+    r = -1;
+end
+
+
+% --------------------------------------------------------------------------
+function setColorBar(p2val)
+
+colorbar('yticklabel', {0.10 * round(0*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(1*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(2*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(3*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(4*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(5*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(6*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(7*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(8*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(9*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val)), ...
+                        0.10 * round(10*((max(p2val)-min(p2val))))+0.10*round(10*min(p2val))});
 

@@ -44,7 +44,9 @@ end
 function b = isempty_loc(labelssurf)
 
 b = false;
-if isempty(labelssurf.mesh.vertices) | isempty(labelssurf.mesh.faces)
+if isempty(labelssurf)
+    b = true;
+elseif isempty(labelssurf.mesh.vertices) | isempty(labelssurf.mesh.faces)
     b = true;
 end
 

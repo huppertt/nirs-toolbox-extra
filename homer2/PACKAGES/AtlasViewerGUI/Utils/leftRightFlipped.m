@@ -1,6 +1,7 @@
 function [b, T_2ras] = leftRightFlipped(obj)
 
 b = false;
+T_2ras = [];
 
 if isempty(obj)
     return;
@@ -10,6 +11,13 @@ if ischar(obj)
 else
     orientation = obj.orientation;
 end
+
+% Error checks
+if isempty(orientation)
+    return;
+end
+
+assert(isOrientationValid(orientation));
 
 %%% Create a table of transform matrices to RAS.
 %%% Group them into 6 types, where one of 2 rules apply for whether 
@@ -75,7 +83,7 @@ M{6,6}  = [ 0, 0,-1;   0, 1, 0;  -1, 0, 0];
 M{6,7}  = [ 0, 0, 1;   0,-1, 0;  -1, 0, 0];
 M{6,8}  = [ 0, 0,-1;   0,-1, 0;  -1, 0, 0];
 
-T_2ras = findTransform2RAS(orientation);
+T_2ras = getRasXformFromOrientation(orientation);
 T1 = T_2ras(1:3,1:3);
 
 
@@ -107,67 +115,5 @@ if ~isempty(T2)
         b=true;
     end
 end
-
-
-
-
-% -----------------------------------------------------------------------
-function T_2ras = findTransform2RAS(o)
-
-% Construct a matrix, T_2ras, relating the 3-letter orientation 
-% input code to RAS 
-
-T_2ras = eye(4);
-
-if isempty(o)
-    return;
-end
-
-o = upper(o);
-
-if o(1)     == 'R'
-    T_2ras(1,1:3) = [ 1, 0, 0];
-elseif o(1) == 'L'
-    T_2ras(1,1:3) = [-1, 0, 0];
-elseif o(1) == 'A'
-    T_2ras(1,1:3) = [ 0, 1, 0];
-elseif o(1) == 'P'
-    T_2ras(1,1:3) = [ 0,-1, 0];
-elseif o(1) == 'S'
-    T_2ras(1,1:3) = [ 0, 0, 1];
-elseif o(1) == 'I'
-    T_2ras(1,1:3) = [ 0, 0,-1];
-end
-
-if o(2)     == 'R'
-    T_2ras(2,1:3) = [ 1, 0, 0];
-elseif o(2) == 'L'
-    T_2ras(2,1:3) = [-1, 0, 0];
-elseif o(2) == 'A'
-    T_2ras(2,1:3) = [ 0, 1, 0];
-elseif o(2) == 'P'
-    T_2ras(2,1:3) = [ 0,-1, 0];
-elseif o(2) == 'S'
-    T_2ras(2,1:3) = [ 0, 0, 1];
-elseif o(2) == 'I'
-    T_2ras(2,1:3) = [ 0, 0,-1];
-end
-
-if o(3)     == 'R'
-    T_2ras(3,1:3) = [ 1, 0, 0];
-elseif o(3) == 'L'
-    T_2ras(3,1:3) = [-1, 0, 0];
-elseif o(3) == 'A'
-    T_2ras(3,1:3) = [ 0, 1, 0];
-elseif o(3) == 'P'
-    T_2ras(3,1:3) = [ 0,-1, 0];
-elseif o(3) == 'S'
-    T_2ras(3,1:3) = [ 0, 0, 1];
-elseif o(3) == 'I'
-    T_2ras(3,1:3) = [ 0, 0,-1];
-end
-
-T_2ras = inv(T_2ras);
-
 
 

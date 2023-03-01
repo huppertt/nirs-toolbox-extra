@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Analytical scattering by spheres</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Field Scattered by Spherical Perturbation</h1>
+
+<p id="Description">Calculate the fluence scattered off of a spherical
+perturbation in an infinite medium.  <mat>exactSphere()</mat> uses the
+analytical solution (Mie theory) to calculated the total scattered field.
+Most people will want to call <mat>genSphereData()</mat> instead.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="exactSphere.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	phiScat = exactSphere(SD, Medium, MeasList, Object);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">Object</td>
+    <td><mat><a href="pmi-medium.xhtml#Object">Object</a></mat>
+	structure(s) that describe the spherical perturbation</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">phiScat</td>
+    <td>The scattered fluence due to the spherical perturbation</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>The analytical solution is only valid in an infinite medium;
+semi-infinite and slab geometries are not supported.  On the other
+hand, because the calculation is done analytically, the sphere is not
+forced to fit on to the lattice in <mat>Medium.CompVol</mat> (as it
+would be if <mat><a href="genborndata.xhtml">genBornData()</a></mat>
+were called with, say, the "Born" method).</p>
+
+<p>Because of the differences in the Green's function, the analytical
+solution is only valid for frequency-domain imagers.</p>
+
+<p>Currently, the function calculates the perturbation at only a
+single wavelength.  Use
+<mat><a href="genspheredata.xhtml">genSphereData()</a></mat> to
+calculate all the wavelengths in the 
+<a href="pmi-measlist.xhtml">measurement list</a> at once.</p>
+
+<p> For more information on the analytical solution, see:
+<div class="reference">
+H. C. van de Hulst, <i>Light scattering by small particles</i>,
+J.&nbsp;Wiley and Sons, New&nbsp;York, 1957.
+</div>
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

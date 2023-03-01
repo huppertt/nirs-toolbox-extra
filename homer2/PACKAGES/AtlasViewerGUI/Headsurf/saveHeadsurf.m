@@ -1,17 +1,10 @@
-function saveHeadsurf(headsurf, dirname, T_vol2mc, mode)
+function saveHeadsurf(headsurf, T_vol2mc, mode)
 
 if isempty(headsurf) | isempty(headsurf.mesh.vertices)
     return;
 end
 
-if ~exist('dirname','var')  | isempty(dirname)
-    dirname = [pialsurf.pathname, '/anatomical/'];
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/anatomical/'];    
-end
+dirname = [headsurf.pathname, '/anatomical/'];
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end

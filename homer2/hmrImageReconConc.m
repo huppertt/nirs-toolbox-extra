@@ -1,5 +1,10 @@
 function [HbO, HbR, err] = hmrImageReconConc(dodavgimg, dodresid, alpha, Adot)
 
+% Adot must be double (rather than single) to calculate eigs(B,1)
+if strcmp(class(Adot),'single')
+    Adot = double(Adot);
+end
+
 HbO = [];
 HbR = [];
 err = 0;
@@ -12,16 +17,13 @@ nconc = size(dodavgimg,2);
 img = zeros(size(Adot,2),length(nconc));
 
 B = Adot*Adot';
-%C = cov(dodresid);
+
 
 %%  Tikhonov regularization
-%img = Adot' * ((B + alpha*C) \ dodavgimg);
-% solution to arg min ||Y-Ax||^2 + lamda * ||x||^2
-img =  Adot' * (inv(B + alpha^2 * eye(size(Adot,1))) * dodavgimg); 
+% solution to arg min ||Y-Ax||^2 + lamda * ||x||^2 (prior only on state estimate)
+ img =  Adot' * (inv(B + alpha * eigs(B,1) * eye(size(Adot,1))) * dodavgimg);  % Custo2010NI; BoasDale2005; typical alpha = 0.01
 
-
- 
-% solution to arg min ||Y-Ax||^2 + lamda * ||x - x0||^2
+ % solution to arg min ||Y-Ax||^2 + lamda * ||x - x0||^2
  %img = img0 + Adot' * ((B + alpha^2 * eye(size(Adot,1))) \ (dodavgimg - Adot * img0 * ones(size(Adot,2),1) )); 
  
 % solution to arg min ||C^1/2*(Y-Ax)||^2 + lamda * ||P^1/2*(x - x0)||^2
@@ -30,8 +32,11 @@ img =  Adot' * (inv(B + alpha^2 * eye(size(Adot,1))) * dodavgimg);
 % C = abs(cov(dodresid)); % (var(dod)); % variance of the measurement       
 % invC = abs(pinv(C));
 % As = sparse(double(Adot));
-% img =  P * As' * ((As*P*As' + C) \ dodavgimg);                 % % % or: img = (As' * invC * As + invP)\(As' * invC * dodavgimg);
+% img =  P * As' * ((As*P*As' + C) \ dodavgimg); % or: img = (As' * invC * As + invP)\(As' * invC * dodavgimg);
 
+% 
+% C = cov(dodresid);
+% img = Adot' * ((B + alpha*C) \ dodavgimg);
  
 % get HbO and HbR 
 HbO = img(1:size(img,1)/2);

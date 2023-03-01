@@ -20,9 +20,9 @@ function [hFig, iDS, iFig] = view_spectrum(TimefreqFile, DisplayMode, RowName, i
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -36,8 +36,9 @@ function [hFig, iDS, iFig] = view_spectrum(TimefreqFile, DisplayMode, RowName, i
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2012; Martin Cousineau, 2017
-
+% Authors: Francois Tadel, 2012-2019
+%          Martin Cousineau, 2017
+%          Marc Lalancette, 2020
 
 %% ===== INITIALIZATION =====
 % GlobalData : create if not existing yet
@@ -71,7 +72,7 @@ bst_progress('start', 'View time-frequency map', 'Loading data...');
 % Load file
 [iDS, iTimefreq] = bst_memory('LoadTimefreqFile', TimefreqFile);
 if isempty(iDS)
-    % error('Cannot load timefreq file.');
+    bst_progress('stop');
     hFig = [];
     iFig = [];
     return
@@ -99,7 +100,7 @@ setappdata(hFig, 'StudyFile',    GlobalData.DataSet(iDS).StudyFile);
 setappdata(hFig, 'SubjectFile',  GlobalData.DataSet(iDS).SubjectFile);
 % Static dataset
 setappdata(hFig, 'isStatic', (GlobalData.DataSet(iDS).Timefreq(iTimefreq).NumberOfSamples <= 2));
-isStaticFreq = (size(GlobalData.DataSet(iDS).Timefreq(iTimefreq).TF,3) <= 1);
+isStaticFreq = ~strcmpi(DisplayMode, 'Spectrum') && (size(GlobalData.DataSet(iDS).Timefreq(iTimefreq).TF,3) <= 1);
 setappdata(hFig, 'isStaticFreq', isStaticFreq);
 % Get figure data
 TfInfo = getappdata(hFig, 'Timefreq');
@@ -126,6 +127,20 @@ elseif ismember(TfMethod, {'fft', 'psd'})
 else
     TfInfo.Function = process_tf_measure('GetDefaultFunction', GlobalData.DataSet(iDS).Timefreq(iTimefreq));
 end
+% Check if this TF is normalized. For older spectrum files, look in file name.
+if isfield(GlobalData.DataSet(iDS).Timefreq(iTimefreq).Options, 'Normalized') && ~isempty(GlobalData.DataSet(iDS).Timefreq(iTimefreq).Options.Normalized)
+    TfInfo.Normalized = GlobalData.DataSet(iDS).Timefreq(iTimefreq).Options.Normalized;
+elseif ~isempty(strfind(TfInfo.FileName, 'relative2020'))
+    TfInfo.Normalized = 'relative2020';
+elseif ~isempty(strfind(TfInfo.FileName, 'relative'))
+    TfInfo.Normalized = 'relative';
+elseif ~isempty(strfind(TfInfo.FileName, 'multiply2020'))
+    TfInfo.Normalized = 'multiply2020';
+elseif ~isempty(strfind(TfInfo.FileName, 'multiply'))
+    TfInfo.Normalized = 'multiply';
+else
+    TfInfo.Normalized = 'none';
+end
 % Frequency selection: depends on the display type
 if isStaticFreq || strcmpi(DisplayMode, 'Spectrum')
     TfInfo.iFreqs = [];
@@ -149,6 +164,14 @@ else
 end
 TsInfo.ShowXGrid = bst_get('ShowXGrid');
 TsInfo.ShowYGrid = bst_get('ShowYGrid');
+TsInfo.ShowZeroLines = bst_get('ShowZeroLines');
+TsInfo.ShowEventsMode = bst_get('ShowEventsMode');
+TsInfo.XScale = bst_get('XScale');
+if isequal(TfInfo.Function, 'log') || any(GlobalData.DataSet(iDS).Timefreq(iTimefreq).TF(:) <= 0)
+    TsInfo.YScale = 'linear';
+else
+    TsInfo.YScale = bst_get('YScale');
+end
 setappdata(hFig, 'TsInfo', TsInfo);
 
 % Display options panel

@@ -3,9 +3,9 @@ function varargout = process_import_anatomy( varargin )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -19,7 +19,7 @@ function varargout = process_import_anatomy( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2013
+% Authors: Francois Tadel, 2013-2018
 
 eval(macro_method);
 end
@@ -30,9 +30,9 @@ function sProcess = GetDescription() %#ok<DEFNU>
     % Description the process
     sProcess.Comment     = 'Import anatomy folder';
     sProcess.Category    = 'Custom';
-    sProcess.SubGroup    = 'Import anatomy';
+    sProcess.SubGroup    = {'Import', 'Import anatomy'};
     sProcess.Index       = 1;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/Tutorials/ImportAnatomy#Import_the_anatomy';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/ImportAnatomy#Import_the_anatomy';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'import'};
     sProcess.OutputTypes = {'import'};
@@ -171,20 +171,30 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     % ===== IMPORT FILES =====
     % Import folder
     switch (FileFormat)
+        case 'FreeSurfer-fast'
+            errorMsg = import_anatomy_fs(iSubject, AnatDir, nVertices, 0, sFid, 0, 0);
         case 'FreeSurfer'
-            errorMsg = import_anatomy_fs(iSubject, AnatDir, nVertices, 0, sFid, 0);
+            errorMsg = import_anatomy_fs(iSubject, AnatDir, nVertices, 0, sFid, 0, 1);
         case 'FreeSurfer+Thick'
-            errorMsg = import_anatomy_fs(iSubject, AnatDir, nVertices, 0, sFid, 1);
+            errorMsg = import_anatomy_fs(iSubject, AnatDir, nVertices, 0, sFid, 1, 1);
+        case 'BrainSuite-fast'
+            errorMsg = import_anatomy_bs(iSubject, AnatDir, nVertices, 0, sFid, 0);
         case 'BrainSuite'
-            errorMsg = import_anatomy_bs(iSubject, AnatDir, nVertices, 0, sFid);
+            errorMsg = import_anatomy_bs(iSubject, AnatDir, nVertices, 0, sFid, 1);
         case 'BrainVISA'
             errorMsg = import_anatomy_bv(iSubject, AnatDir, nVertices, 0, sFid);
+        case 'CAT12'
+            errorMsg = import_anatomy_cat(iSubject, AnatDir, nVertices, 0, sFid, 0);
+        case 'CAT12+Thick'
+            errorMsg = import_anatomy_cat(iSubject, AnatDir, nVertices, 0, sFid, 1);
         case 'CIVET'
             errorMsg = import_anatomy_civet(iSubject, AnatDir, nVertices, 0, sFid, 0);
         case 'CIVET+Thick'
             errorMsg = import_anatomy_civet(iSubject, AnatDir, nVertices, 0, sFid, 1);
         case 'HCPv3'
             errorMsg = import_anatomy_hcp_v3(iSubject, AnatDir, 0);
+        case 'SimNIBS'
+            errorMsg = import_anatomy_simnibs(iSubject, AnatDir, nVertices, 0, sFid, 0);
         otherwise
             errorMsg = ['Invalid file format: ' FileFormat];
     end

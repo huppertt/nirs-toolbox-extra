@@ -9,7 +9,6 @@ function probe_geometry_axes_Init(handles,optpos_src,optpos_det,optpos_dummy,ml)
     axes(hObject);
     cla;
     zoom off;
-    set(hObject, 'ButtonDownFcn', {@probe_geometry_axes_ButtonDownFcn, 0});
     
     
     probe_geometry_axes_data = get(hObject,'userdata');

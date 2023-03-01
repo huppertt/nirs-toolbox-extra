@@ -1,4 +1,4 @@
-% [dN,tInc,dstd,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV )
+% [dN,tInc,dstd,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV, turn on)
 %
 %
 % UI NAME
@@ -49,7 +49,18 @@
 %       artifacts
 %
 
-function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV, maxIter )
+function [dN,tInc,svs,nSV,tInc0] = hmrMotionCorrectPCArecurse( d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh, nSV, maxIter, turnon)
+
+if exist('turnon')
+   if turnon==0
+       dN = d;
+       tInc = tIncMan;
+       svs = [];
+       tInc0 = [tIncMan];      
+   return;
+   end
+end
+
 
 
 tInc=hmrMotionArtifact(d, fs, SD, tIncMan, tMotion, tMask, std_thresh, amp_thresh);

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>genBornMat - compute forward problem</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Compute Forward Problem</h1>
+
+<p id="Description"><mat>genBornMat()</mat> is a general routine for
+solving the forward problem.  Based on the <mat>Method</mat> argument,
+the geometry in the <mat><a href="pmi-medium.xhtml">Medium</a></mat>
+structure, and the contents of the <a href="pmi-measlist.xhtml">measurement 
+list</a>, <mat>genBornMat()</mat> figures out what the appropriate
+low-level routine to call is and makes the appropriate call for the
+user.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="genBornMat.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[Phi0, A] = genBornMat(SD, Medium, MeasList, Method, muVec);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">Method</td>
+    <td>Which method to use (Born, Rytov, etc.)</td>
+</tr>
+<tr>
+    <td class="varname">muVec</td>
+    <td>Flags to indicate optical perturbations (see below)</td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">Phi0</td>
+    <td>The fluence in a homogeneous medium</td>
+</tr>
+<tr>
+    <td class="varname">A</td>
+    <td>The forward matrix</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>The <mat>muVec</mat> argument is a two-parameter vector.  The first
+element (<mat>muVec(1)</mat>) indicates whether <mat>A</mat> should
+include terms for calculating absorption perturbations, the second
+term <mat>muVec(2)</mat> is for scattering perturbations.  If the
+flag is non-zero, the forward matrix includes those elements,
+otherwise they are not calculated.  Either <mat>muVec(1)</mat>,
+<mat>muVec(2)</mat> (or both) should be non-zero.</p>
+
+<p>The forward matrix has a block form.  To save space, a sparse
+matrix representation is used for all but the simplest instances of
+the forward matrix <mat>A</mat>.  The outermost block is the type of
+perturbation (if both are used); absorption first, then scattering.
+Within that block, the next set of blocks are by wavelength (so that
+the matrix will work correctly with perturbations at multiple
+wavelengths).  Space is left for all the wavelengths in <mat>SD</mat>,
+regardless of whether those wavelengths appear in the measurement
+list.  Finally, within each wavelength is a dense matrix mapping
+perturbations at that wavelength into the "scattered" field.</p>
+
+<p><mat>genBornMat()</mat> is mostly just a wrapper function that
+calls the appropriate low-level routines based on the contents of the
+measurement list and the <mat>Method</mat> argument.  For
+frequency-domain imagers, the conversion from the "Born" to "Rytov"
+formulation is also handled by <mat>genBornMat()</mat>.</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

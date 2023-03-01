@@ -40,12 +40,10 @@ else
         return;
     end
           
-    if(min(f(:))==0)
-        f=f+1;
-    end
-    
     if exist([dirname, 'pialsurf2vol.txt'],'file')
         T_2vol = load([dirname, 'pialsurf2vol.txt'],'-ascii');
+    else
+        T_2vol = eye(4);        
     end
     v = xform_apply(v,T_2vol);
     fv.vertices = v;

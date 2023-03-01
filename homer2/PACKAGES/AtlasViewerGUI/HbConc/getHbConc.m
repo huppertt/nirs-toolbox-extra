@@ -27,12 +27,7 @@ dirnameOut = [dirname 'imagerecon/'];
 hbconc.mesh = pialsurf.mesh;
 
 % Check if there's group acquisition data to load
-group = [];
-if exist([dirname, 'groupResults.mat'],'file')
-    load([dirname, 'groupResults.mat'], '-mat');
-elseif exist([dirname, '../', 'groupResults.mat'],'file')
-    load([dirname, '../', 'groupResults.mat'], '-mat');
-end
+[~,~, group] = findSubjDirs();
 if ~isempty(group)
     if hbconc.iSubj==0
         hbconc.subjData = group;

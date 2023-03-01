@@ -1,4 +1,4 @@
-function [node,elem,face]=surf2mesh(v,f,p0,p1,keepratio,maxvol,regions,holes,forcebox)
+function [node,elem,face]=surf2mesh(v,f,p0,p1,keepratio,maxvol,regions,holes,forcebox,method)
 %
 % [node,elem,face]=surf2mesh(v,f,p0,p1,keepratio,maxvol,regions,holes,forcebox)
 %
@@ -31,7 +31,9 @@ function [node,elem,face]=surf2mesh(v,f,p0,p1,keepratio,maxvol,regions,holes,for
 fprintf(1,'generating tetrahedral mesh from closed surfaces ...\n');
 
 exesuff=getexeext;
-exesuff=fallbackexeext(exesuff,'tetgen');
+if(nargin<10)
+   method = 'tetgen';
+end
 
 if(keepratio>1 | keepratio<0)
    warn(['The "keepratio" parameter is required to be between 0 and 1. '...
@@ -101,9 +103,9 @@ catch
     end
 end
 if(isempty(cmdopt))
-  system([' "' mcpath('tetgen') exesuff '" -A -q1.414a' num2str(maxvol) ' ' moreopt ' "' mwpath('post_vmesh.poly') '"']);
+  system([' "' mcpath(method) exesuff '" -A -q1.414a' num2str(maxvol) ' ' moreopt ' "' mwpath('post_vmesh.poly') '"']);
 else
-  system([' "' mcpath('tetgen') exesuff '" ' cmdopt ' "' mwpath('post_vmesh.poly') '"']);
+  system([' "' mcpath(method) exesuff '" ' cmdopt ' "' mwpath('post_vmesh.poly') '"']);
 end
 
 % read in the generated mesh

@@ -6,7 +6,7 @@ end
 if exist('./INSTALL','dir')
     cd('./INSTALL');
 end
-    
+
 % Find installation path and add it to matlab search paths
 dirnameInstall = fileparts(which('createInstallFile.m'));
 if isempty(dirnameInstall)
@@ -48,18 +48,25 @@ mkdir([dirnameInstall, 'homer2_install']);
 
 dirnameAtlas = 'PACKAGES/AtlasViewerGUI/Data/';
 
+% Zip up MC application 
+if exist([dirnameApp, 'PACKAGES/', platform.mc_exe_name],'dir')
+    tar([dirnameInstall, 'homer2_install/', platform.mc_exe_name, '.tar'], [dirnameApp, 'PACKAGES/', platform.mc_exe_name]);
+    gzip([dirnameInstall, 'homer2_install/', platform.mc_exe_name, '.tar']);
+    delete([dirnameInstall, 'homer2_install/', platform.mc_exe_name, '.tar']);
+end
+
 % Generate executables
 if ~strcmp(options, 'nobuild')
 	Buildme_Setup(pwd);
 	Buildme_Homer2_UI(dirnameApp);
 	Buildme_AtlasViewerGUI(dirnameApp);
+    if islinux()
+        perl('./makesetup.pl','./run_setup.sh','./setup.sh');
+    elseif ismac()
+        perl('./makesetup.pl','./run_setup.sh','./setup.command');
+    end
 end
 
-if islinux()
-    perl('./makesetup.pl','./run_setup.sh','./setup.sh');
-elseif ismac()
-    perl('./makesetup.pl','./run_setup.sh','./setup.command');
-end
 
 dirnameDb2DotMat = findWaveletDb2([dirnameInstall, 'homer2_install/']);
 
@@ -93,22 +100,6 @@ if exist([dirnameApp, dirnameAtlas, 'Colin'],'dir')
     copyfile([dirnameApp, dirnameAtlas, 'Colin/anatomical/*.*'], [dirnameInstall, 'homer2_install']);
     copyfile([dirnameApp, dirnameAtlas, 'Colin/fw/*.*'], [dirnameInstall, 'homer2_install/']);
 end
-if exist([dirnameApp, 'PACKAGES/tMCimg'],'dir')
-
-    if ~exist([dirnameApp, 'PACKAGES/tMCimg/bin/', platform.arch, '/', platform.mc_exe],'file')
-        if exist([dirnameApp, 'PACKAGES/tMCimg/src'],'dir') && ~ispc()
-            currdir = pwd;
-            cd([dirnameApp, 'PACKAGES/tMCimg/src']);
-            system('make opt');
-            cd(currdir);
-        end
-    end
-    
-    if exist([dirnameApp, 'PACKAGES/tMCimg/bin/', platform.arch, '/', platform.mc_exe],'file')
-        copyfile([dirnameApp, 'PACKAGES/tMCimg/bin/', platform.arch, '/', platform.mc_exe], [dirnameInstall, 'homer2_install']);
-    end
-
-end
 
 if exist([dirnameApp, 'PACKAGES/Test'],'dir')
     copyfile([dirnameApp, 'PACKAGES/Test'], [dirnameInstall, 'homer2_install/Test']);
@@ -132,7 +123,6 @@ if exist([dirnameInstall, 'README.txt'],'file')
     copyfile([dirnameInstall, 'README.txt'], [dirnameInstall, 'homer2_install']);
 end
 
-
 for ii=1:length(platform.iso2meshmex)
     % Use dir instead of exist for mex files because of an annoying matlab bug, where a  
     % non existent file will be reported as exisiting as a mex file (exist() will return 3)
@@ -140,6 +130,8 @@ for ii=1:length(platform.iso2meshmex)
     % dir doesn't have this problem.
     if ~isempty(dir([platform.iso2meshbin, platform.iso2meshmex{ii}]))
         copyfile([platform.iso2meshbin, platform.iso2meshmex{ii}], [dirnameInstall, 'homer2_install']);
+    else
+        menu(sprintf('Warning: could not find mex file %s', platform.iso2meshmex{ii}), 'OK');
     end
 end
 

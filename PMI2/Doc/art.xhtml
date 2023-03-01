@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Algebraic Reconstruction Technique</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Algebraic Reconstruction Technique</h1>
+
+<p id="Description">Invert the forward matrix using Algebraic
+Reconstruction Technique (ART).  Regularization is provided by
+truncated the reconstruction after a user-supplied number of
+iterations.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="art.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	X = art(A, Y, X0, nIter, W, iMeas);
+    </td>
+</tr>
+<tr><th rowspan="6" class="syntaxHead">Inputs:</th>
+    <td class="varname">A</td>
+    <td>Forward matrix</td>
+</tr>
+<tr>
+    <td class="varname">Y</td>
+    <td>The residue appropriate to <mat>A</mat></td>
+</tr>
+<tr>
+    <td class="varname">X0</td>
+    <td>Initial guess or empty matrix <mat>[]</mat> for zeros</td>
+</tr>
+<tr>
+    <td class="varname">nIter</td>
+    <td>Number of iterations to calculate</td>
+</tr>
+<tr>
+    <td class="varname">W</td>
+    <td>Relaxation parameter.  Optional: 1.0 if not specified</td>
+</tr>
+<tr>
+    <td class="varname">iMeas</td>
+    <td>The initial row to project on to.  Optional: 1 if not specified</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">X</td>
+    <td>The reconstructed image</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p> For more information on SIRT see:
+<div class="reference">
+  Avinash C. Kak and Malcolm Slaney,  
+  <a href="http://www.slaney.org/pct/index.html"><i>Principles of
+  computerized tomographic imaging</i></a>, IEEE Press, New York, 1988.
+</div>
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

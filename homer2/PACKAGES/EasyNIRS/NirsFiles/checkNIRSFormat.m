@@ -19,7 +19,11 @@ for iF=1:nFiles
     %%%% format. If not we have nothing to work with.
     try
         load( files(iF).name, '-mat','d','t','SD','s','aux','procInput','CondNames');
-    catch 
+        assert(logical(exist('d','var')), 'Missing variable ''d''');
+        assert(logical(exist('t','var')), 'Missing variable ''t''');
+        assert(logical(exist('SD','var')), 'Missing variable ''SD''');
+    catch ME
+        fprintf('Error in %s: File could not be loaded due to %s\n', files(iF).name, ME.message);
         flags(iF).FileCorrupt = 1;
         continue;
     end
@@ -190,9 +194,15 @@ for iF=1:nFiles
     end
     
     clear('d','t','SD','s','aux','procInput','CondNames');
-    
+
 end
 close(hwait);
 
 warning('on','MATLAB:load:variableNotFound');
 
+
+
+% -----------------------------------------------------------------
+function b = checkFileData()
+
+b = true;

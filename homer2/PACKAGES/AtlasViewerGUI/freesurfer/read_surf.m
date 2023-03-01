@@ -14,19 +14,21 @@ function [vertex_coords, faces] = read_surf(fname)
 %
 % Original Author: Bruce Fischl
 % CVS Revision Info:
-%    $Author: jdubb $
-%    $Date: 2014-08-23 19:19:15 $
-%    $Revision: 1.2 $
+%    $Author: nicks $
+%    $Date: 2007/01/10 22:55:10 $
+%    $Revision$
 %
-% Copyright © 2011 The General Hospital Corporation (Boston, MA) "MGH"
+% Copyright (C) 2002-2007,
+% The General Hospital Corporation (Boston, MA). 
+% All rights reserved.
 %
-% Terms and conditions for use, reproduction, distribution and contribution
-% are found in the 'FreeSurfer Software License Agreement' contained
-% in the file 'LICENSE' found in the FreeSurfer distribution, and here:
+% Distribution, usage and copying of this software is covered under the
+% terms found in the License Agreement file named 'COPYING' found in the
+% FreeSurfer source code root directory, and duplicated here:
+% https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferOpenSourceLicense
 %
-% https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferSoftwareLicense
-%
-% Reporting: freesurfer@nmr.mgh.harvard.edu
+% General inquiries: freesurfer@nmr.mgh.harvard.edu
+% Bug reports: analysis-bugs@nmr.mgh.harvard.edu
 %
 
 
@@ -37,9 +39,6 @@ function [vertex_coords, faces] = read_surf(fname)
 
 % open it as a big-endian file
 
-if ~exist('surftype','var')
-    surftype='fs';
-end
 
 %QUAD_FILE_MAGIC_NUMBER =  (-1 & 0x00ffffff) ;
 %NEW_QUAD_FILE_MAGIC_NUMBER =  (-3 & 0x00ffffff) ;
@@ -61,7 +60,7 @@ if(magic == QUAD_FILE_MAGIC_NUMBER)
   if (nargout > 1)
     for i=1:fnum
       for n=1:4
-		faces(i,n) = fread3(fid) ;
+	faces(i,n) = fread3(fid) ;
       end
     end
   end

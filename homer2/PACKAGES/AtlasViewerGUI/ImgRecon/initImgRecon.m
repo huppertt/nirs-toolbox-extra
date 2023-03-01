@@ -80,11 +80,11 @@ imgrecon = rmfield(imgrecon, 'iSubj');
 function b = isempty_loc(imgrecon)
 
 b = false;
-if (isempty(imgrecon.Aimg_conc.HbO) & isempty(imgrecon.Aimg_conc.HbR)) & ...
-   (isempty(imgrecon.Aimg_conc_scalp.HbO) & isempty(imgrecon.Aimg_conc_scalp.HbR)) & ...
-   (isempty(imgrecon.localizationError) & isempty(imgrecon.resolution))  
-
+if isempty(imgrecon)
     b = true;
-
+elseif (isempty(imgrecon.Aimg_conc.HbO) & isempty(imgrecon.Aimg_conc.HbR)) & ...
+       (isempty(imgrecon.Aimg_conc_scalp.HbO) & isempty(imgrecon.Aimg_conc_scalp.HbR)) & ...
+       (isempty(imgrecon.localizationError) & isempty(imgrecon.resolution))  
+    b = true;
 end
 

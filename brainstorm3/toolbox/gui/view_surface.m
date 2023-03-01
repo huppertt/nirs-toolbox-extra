@@ -22,9 +22,9 @@ function [hFig, iDS, iFig] = view_surface(SurfaceFile, SurfAlpha, SurfColor, hFi
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -88,6 +88,8 @@ if isempty(iDS)
         iDS = bst_memory('GetDataSetSubject', SubjectFile, 1);
     end
     iDS = iDS(1);
+else
+    SubjectFile = sSubject.FileName;
 end
 
 %% ===== CREATE NEW FIGURE =====
@@ -121,7 +123,7 @@ setappdata(hFig, 'SubjectFile',  SubjectFile);
     
 %% ===== DISPLAY SURFACE =====
 % Add surface to figure
-iSurf = panel_surface('AddSurface', hFig, SurfaceFile);
+[iSurf, TessInfo] = panel_surface('AddSurface', hFig, SurfaceFile);
 if isempty(iSurf)
     return
 end
@@ -147,7 +149,7 @@ end
 bst_figures('SetCurrentFigure', hFig, '3D');
 % If the default atlas is "Source model" or "Structures": Switch it back to "User scouts"
 sAtlas = panel_scout('GetAtlas', SurfaceFile);
-if ~isempty(sAtlas) && ismember(sAtlas.Name, {'Structures', 'Source model'})
+if ~isempty(sAtlas) && ismember(sAtlas.Name, {'Structures', 'Source model'}) && isequal(TessInfo(iSurf).Name, 'Cortex')
     panel_scout('SetCurrentAtlas', 1);
 end
 % Show all scouts for this surface (for cortex only)

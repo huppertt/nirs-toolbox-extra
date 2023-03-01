@@ -1,4 +1,4 @@
-function [refpts, labels, err] = calcRefptsSmallscale(refpts, head, labels, eeg_system)
+function [refpts, labels, err] = calcRefptsSmallscale(refpts, head, labels)
 
 %
 % USAGE:
@@ -58,13 +58,13 @@ if ~isstruct(head) && ndims(head)==2
 elseif ~isstruct(head) && ndims(head)==3
     fv = isosurface(head,.9);
     fv.vertices = [fv.vertices(:,2) fv.vertices(:,1) fv.vertices(:,3)];
-    % [fv.vertices fv.faces] = meshresample(fv.vertices, fv.faces, .2);
+    % [fv.vertices fv.faces] = reduceMesh(fv.vertices, fv.faces, .2);
     surf = fv;
     vertices = surf.vertices;
 elseif isstruct(head) && isfield(head,'img')
     fv = isosurface(head.img,.9);
     fv.vertices = [fv.vertices(:,2) fv.vertices(:,1) fv.vertices(:,3)];
-    % [fv.vertices fv.faces] = meshresample(fv.vertices, fv.faces, .2);
+    % [fv.vertices fv.faces] = reduceMesh(fv.vertices, fv.faces, .2);
     surf = fv;    
     vertices = surf.vertices;
 elseif isstruct(head) && isfield(head,'mesh')    
@@ -125,7 +125,7 @@ Czi = pos(kcz,:);
 dt=.5;
 
 % Step sizes as a percentage of curve length
-switch(eeg_system)
+switch(refpts.eeg_system.selected)
     case '10-10'
         stepsize1 = 10;
         stepsize2 = 25;

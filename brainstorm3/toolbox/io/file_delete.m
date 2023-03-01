@@ -19,9 +19,9 @@ function isDeleted = file_delete( fileList, isForced, isRecursive )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -35,7 +35,7 @@ function isDeleted = file_delete( fileList, isForced, isRecursive )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2008-2014
+% Authors: Francois Tadel, 2008-2019
 
 % Parse inputs
 if (nargin < 2)
@@ -90,9 +90,9 @@ if ~isForced
     end
     % Raw warning
     if ~all(cellfun(@(c)isempty(strfind(c, '_0raw')), fileList))
-        questStr = [questStr '<BR><FONT color="#CC0000">Warning: Removing links to raw files does not acually remove the raw files.<BR>' ...
-                    'To remove the recordings from the hard drive, use the popup menu File > Delete raw file,<BR>' ...
-                    'or do it from your operating system file manager.</FONT>'];
+        questStr = [questStr '<BR><FONT color="#008000">Removing links to raw files does not delete the original recordings from<BR>' ...
+                        'your hard drive. You can only do this from your operating system file manager.<BR><BR></FONT>'];
+                
     end
     isConfirmed = java_dialog('confirm', questStr, 'Delete files');
 else
@@ -163,7 +163,7 @@ if isConfirmed
                             bst_error(['This call to file_delete() is trying to delete the following folder:' 10 fileList{i} 10 ...
                                        'This is not considered to be a folder managed by Brainstorm, the request was cancelled.' 10 10 ...
                                        'Please report this error to the Brainstorm developers using the user forum:' 10 ...
-                                       'http://neuroimage.usc.edu/forums/'], 'Error in file_delete.m', 1);
+                                       'https://neuroimage.usc.edu/forums/'], 'Error in file_delete.m', 1);
                             isDeleted = -1;
                             return;
                         end
@@ -187,7 +187,7 @@ if isConfirmed
                     case -1
                         bst_error(['This call to file_delete() is trying to delete the following folder instead of a single file:' 10 fileList{i} 10 10 ...
                                    'Please report this error to the Brainstorm developers using the user forum:' 10 ...
-                                   'http://neuroimage.usc.edu/forums/'], 'Error in file_delete.m', 1);
+                                   'https://neuroimage.usc.edu/forums/'], 'Error in file_delete.m', 1);
                         isDeleted = -1;
                         return;
                 end

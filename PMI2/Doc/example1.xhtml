@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title></title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Example1.m</h1>
+
+<pre>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Copyright (C) 2004, Jonathan Stott</span>
+<span class="comment">%</span>
+<span class="comment">% This program is free software; you can redistribute it and/or</span>
+<span class="comment">% modify it under the terms of the GNU General Public License</span>
+<span class="comment">% as published by the Free Software Foundation; either version 2</span>
+<span class="comment">% of the License, or (at your option) any later version.</span>
+<span class="comment">%</span>
+<span class="comment">% This program is distributed in the hope that it will be useful,</span>
+<span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="comment">% GNU General Public License for more details.</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Tell matlab where to find the PMI files.  This should be done only</span>
+<span class="comment">% once per session; I recommend putting it into your startup.m file.</span>
+
+pmipath('/homes/monte/1/home/jstott/matlab/PMI');
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Define a few variables for convenience</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+doscat = 1;		<span class="comment">% flags, 1 or 0</span>
+doabs  = 1;
+thick  = 6;		<span class="comment">% Slab thickness</span>
+
+Method = 'Rytov';       <span class="comment">% Born or Rytov</span>
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Generate SD structure with source/detector/measurement information</span>
+
+SD.Lambda  = [690 800]; <span class="comment">% Define 2 Wavelengths</span>
+SD.ModFreq = [  100  ]; <span class="comment">% Single-frequency RF imager</span>
+
+<span class="comment">% Source and Detector Positions</span>
+
+SD.SrcPos = SetOptode([-2:2:2], [-2:2:2], 0, 1);
+SD.DetPos = SetOptode([-3:2:3], [-3:2:3], thick, 1);
+
+<span class="comment">% Source and Detector Amplitudes</span>
+
+SD.SrcAmp = 1e-3*ones(size(SD.SrcPos,1), ...
+                      length(SD.Lambda), length(SD.ModFreq));
+SD.DetAmp = 1e-3*ones(size(SD.DetPos,1), ...
+                      length(SD.Lambda),length(SD.ModFreq));
+
+<span class="comment">% Generate a measurement list with all possible measurements</span>
+
+SD.MeasList = genMeasList(SD, 'all');
+
+nWvl = length(SD.Lambda);
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Generate structure describing Medium to be imaged</span>
+
+<span class="comment">% Optical properties</span>
+
+Medium.idxRefr = [ 1.37 1.36 ];
+Medium.Muao    = [ 0.02 0.04 ];
+Medium.Muspo   = [ 9.50 8.35 ];
+
+<span class="comment">% Imaging volume</span>
+
+Medium.Geometry       = 'slab';
+Medium.Slab_Thickness = thick;
+
+<span class="comment">% Volume to reconstruct</span>
+
+Medium.CompVol.Type  = 'computed';
+Medium.CompVol.XStep = 0.5;
+Medium.CompVol.X     = [ -4.0 4.0 ];
+Medium.CompVol.YStep = 0.5;
+Medium.CompVol.Y     = [ -4.0 4.0 ];
+Medium.CompVol.ZStep = 0.5;	<span class="comment">% Avoid the problematic z=0 case</span>
+Medium.CompVol.Z     = [ 0.25 thick ];
+
+nVox = length(sampleVolume(Medium.CompVol));
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Generate forward matrix ('Born'/'Rytov' solve the homogeneous problem)</span>
+
+<span class="comment">% Two wavelengths were defined, but I'm only going to reconstruct data</span>
+<span class="comment">%  from one of them, as an example of using a subset of the measurement</span>
+<span class="comment">%  list (and to save time).  Also drop the long-distance imaging pairs.</span>
+
+dR = calcSep(SD, SD.MeasList);
+
+ml1 = find(SD.MeasList(:,4) == 1 &amp; dR &lt; 9);
+MeasList = SD.MeasList(ml1, :);
+clear ml1 dR;
+
+disp('Generating forward matrix - please wait');
+
+[Phi0, A] = genBornMat(SD, Medium, MeasList, Method, [doabs doscat]);
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Define perturbations - NOTE: abs/scat perturbations supported if and</span>
+<span class="comment">%                         only if they're supported by the forward</span>
+<span class="comment">%                         problem (i.e., they're included in A)</span>
+
+if (doabs)
+   Medium.Object{1}.Type   = 'Sphere';         <span class="comment">% Spherical scatterer</span>
+   Medium.Object{1}.Pos    = [ 1 1.25 2.9 ];
+   Medium.Object{1}.Radius = 1.2;
+   Medium.Object{1}.Mua    = Medium.Muao;
+   Medium.Object{1}.Musp   = Medium.Muspo - 1;
+end
+
+if (doscat)
+   if (doabs)
+      n = 2;
+   else
+      n = 1;
+   end
+   
+   Medium.Object{n}.Type   = 'Sphere';          <span class="comment">% Spherical absorber</span>
+   Medium.Object{n}.Pos    = [ -2.25 -1.25 1.75 ];
+   Medium.Object{n}.Radius = 1.2;
+   Medium.Object{n}.Mua    = Medium.Muao + 0.02;
+   Medium.Object{n}.Musp   = Medium.Muspo;
+   
+   clear n;
+end
+
+disp('Generating simulated data');
+
+Phi = genBornData(SD, Medium, MeasList, Method, Phi0, A, [doabs doscat]);
+
+disp('Adding noise');
+
+Phi = addShotNoise(SD,MeasList,Phi,10,1);    	<span class="comment">% approx 1000:1 SNR</span>
+Phi = addElecNoise(SD,MeasList,Phi,1000);    	<span class="comment">% average 1000:1 SNR</span>
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Invert the simulated data</span>
+
+disp('Inverting simulated data');
+
+<span class="comment">% A gives me d\mu_a and dD/D, convert to d\mu_a/\mu_a and dD/D to make</span>
+<span class="comment">% both halves of order 1</span>
+
+if (doabs &amp; doscat)
+   for k = 1:nWvl
+      <span class="comment">% First half at each wavelength is absorbtion, second scattering</span>
+      
+      A(:,2*(k-1)*nVox + [1:nVox]) = ...
+	  A(:,2*(k-1)*nVox + [1:nVox]) * Medium.Muao(k);
+   end
+end
+
+<span class="comment">% Repack as real and imaginary for inversion</span>
+
+A1 = [ real(A); imag(A) ];
+
+if (strcmpi(Method,'Rytov'))
+   Y = [ real(log(Phi./Phi0)); imag(log(Phi./Phi0)) ];
+else
+   Y = [ real(Phi-Phi0); imag(Phi-Phi0) ];
+end
+
+clear A Phi0;
+
+<span class="comment">% Invert the data using filtered back-projection with Tikhonov</span>
+<span class="comment">% regularization.  The regularization parameter alpha was adjusted </span>
+<span class="comment">% manually to get good images.</span>
+
+alpha = 1e-6 * normest(A1).^2;
+
+X = fbp(A1, Y, alpha);
+
+if (doabs &amp; doscat)
+   X = reshape(X, nVox, 2*nWvl);
+
+   for k = 1:nWvl
+      X(:,2*k-1) = X(:,2*k-1) *  Medium.Muao(k);
+      X(:, 2*k ) = X(:, 2*k ) * -Medium.Muspo(k) / 3;
+   end
+else
+   X = reshape(X, nVox, nWvl);
+   
+   if (doscat)
+      for k = 1:nWvl
+	 X(:,k) = X(:,k) * -Medium.Muspo(k) / 3;
+      end
+   end
+end
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% Display the reconstructed data [d\mu_a and d\mu_s']</span>
+
+if (doabs &amp; doscat)
+   dmua = X(:, 1:2:end);
+   dmus = X(:, 2:2:end);
+elseif (doabs)
+   dmua = X;
+   dmus = zeros(0,nWvl);
+else
+   dmua = zeros(0,nWvl);
+   dmus = X;
+end
+
+clear X;
+
+for k = 1:nWvl
+   if (any(MeasList(:,4) == k))
+      showImage(Medium, dmua(:,k), dmus(:,k));
+   end
+end
+
+<span class="comment">% Display the actual scattering perturbation(s), just as a reference</span>
+
+for k = 1:nWvl
+   <span class="comment">% Only display wavelengths actually used</span>
+   
+   if (any(MeasList(:,4) == k))
+      dmua0 =  calcDelMuA(Medium, [], k);
+      dmus0 = calcDelMuSp(Medium, [], k);
+
+      if (~isempty(dmua0) &amp; all(dmua0(:) == 0))
+	 dmua0 = [];
+      end
+
+      if (~isempty(dmus0) &amp; all(dmus0(:) == 0))
+	 dmus0 = [];
+      end
+
+      showImage(Medium, dmua0(:), dmus0(:));
+   end
+end
+
+<span class="comment">% Clear some variables before exiting to save memor</span>
+
+clear dmu0 k n nWvl nVox thick k alpha;
+</pre>
+
+<!-- ================================================================ -->
+
+<p>
+<table style="margin: 0; padding: 0; margin-left: 1em; border: none;">
+  <tr style=""> <th> Original Perturbations </th> </tr>
+  <tr>
+    <td style="border: none;">
+      <img alt="Original Data"
+           src="original1.jpg" width="600" height="441" />
+    </td>
+  </tr>
+  <tr> <th> Reconstructed Perturbations </th> </tr>
+  <tr>
+    <td style="border: none;">
+      <img alt="Reconstructed Data"
+           src="reconstruct1.jpg" width="600" height="443" />
+    </td>
+  </tr>
+</table>
+</p>
+
+<!-- ================================================================ -->
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

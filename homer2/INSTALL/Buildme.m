@@ -37,8 +37,8 @@ appDotMFilesStr = '';
 sanity = 100;
 while ~exist(appDotMFilesStr, 'file')
     
-    appDotMFileMain = sprintf('%s.m', appName);
-    targetName = sprintf('.%s%s.exe', filesep, appName);
+    appDotMFileMain = sprintf('./%s.m', appName);
+    targetName = sprintf('./%s.exe', filesep, appName);
     
     % Check to make sure main .m file exists
     if ~exist(appDotMFileMain,'file')

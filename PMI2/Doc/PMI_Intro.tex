@@ -1,0 +1,377 @@
+% =======================================================================
+%  PMI Toolbox Documentation
+%  Copyright (C) 2004  Jonathan Stott
+%  
+%  This program is free software; you can redistribute it and/or
+%  modify it under the terms of the GNU General Public License
+%  as published by the Free Software Foundation; either version 2
+%  of the License, or (at your option) any later version.
+%  
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%  GNU General Public License for more details.
+%  
+%  You should have received a copy of the GNU General Public License
+%  along with this program; if not, write to the Free Software
+%  Foundation, Inc., 59 Temple Place - Suite 330, 
+%  Boston, MA  02111-1307, USA.
+% =======================================================================
+
+\documentclass[12pt]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tweak default margins.
+
+\setlength{\evensidemargin}{0pt}
+\setlength{\oddsidemargin}{0pt}
+\setlength{\rightmargin}{0pt}
+\setlength{\leftmargin}{0pt}
+
+\setlength{\topmargin}{-0.25in}		% Tweak the spacings
+\setlength{\headheight}{\baselineskip}
+\addtolength{\headheight}{4pt}         \addtolength{\topmargin}{-\headheight}
+\setlength{\headsep}{\baselineskip}    \addtolength{\topmargin}{-\baselineskip}
+\setlength{\footskip}{2\baselineskip}
+
+% Recompute page size using current margin settings
+
+\setlength{\textwidth}{\paperwidth}
+\addtolength{\textwidth}{-2.0in}		% Implicit margins
+\addtolength{\textwidth}{-2\oddsidemargin}	% Explicit margins
+
+\setlength{\textheight}{\paperheight}
+\addtolength{\textheight}{-2.0in}		% Implicit margins
+\addtolength{\textheight}{-\headheight}		% Explicit margins
+\addtolength{\textheight}{-\headsep}
+\addtolength{\textheight}{-\topmargin}
+
+\addtolength{\textheight}{0.25in} % Excess on bottom
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\pmifield}[1]{{\tt #1}}
+\newcommand{\pmifile}[1]{{\tt #1}}
+
+% Check for PDFLaTeX
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse    % we are not running PDFLaTeX
+\else
+  \pdfoutput=1 % we are running PDFLaTeX
+  \pdftrue
+\fi
+
+\ifpdf
+  % Set PDF document options
+  \pdfcompresslevel 6
+  \pdfinfo { 
+    /Title (PMI_Intro.pdf) 
+    /Creator (pdfLaTeX) 
+    /Producer (pdfLaTeX 3.14159-1.10b) 
+    /Author (Jonathan Stott) 
+    /CreationDate (D:20030314164306) 
+    /ModDate (D:20040113134800) 
+    /Subject (Introduction to the PMI Toolbox) 
+    /Keywords (PMI,DOT,Matlab) }
+\fi
+
+\begin{document}
+
+\title{PMI Toolbox Documentation}
+\author{Jonathan Stott}
+% \address{Martinos Center for Biomedical Imaging, Massachusetts General
+% Hospital}
+\date{\today}
+
+\maketitle
+
+\begin{abstract}
+This file has been superceeded by the HTML documentation.
+\end{abstract}
+
+\section{PMI Structures}
+
+Information about the imager configuration is stored in the \pmifield{SD}
+structure.  Information about the volume being imaged is stored in the
+\pmifield{Medium} structure.  The fields used by each are defined below.
+Inappropriate fields (e.g., \pmifield{SD.ModFreq} for a time-domain
+system) generally do not need to be defined.
+
+\subsection{SD Structure}
+
+The fields in the \pmifield{SD} structure and their meaning:
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\pmifield{Lambda}        & Measurement wavelengths (nm) \\[2pt]
+\pmifield{ModFreq}       & Modulation Frequency (MHz) \\[2pt]
+\pmifield{TimeDelay}     & Delay to start of time gate (sec) \\[2pt]
+\pmifield{TimeGateWidth} & Width of time gate (sec) \\[2pt]
+\hline
+\pmifield{SrcPos}        & Source Positions (cm) [$N_{src}\times3$] \\[2pt]
+\pmifield{SrcAmp}        & Complex Source Amplitude 
+				[$N_{src}\times N_{\lambda}\times N_{freq}$] 
+				[-] \\[2pt]
+\pmifield{SrcOffset}     & Source Temporal Offset (sec) \\[2pt]
+\hline
+\pmifield{DetPos}        & Detector Positions (cm) [$N_{src}\times3$] \\[2pt]
+\pmifield{DetAmp}        & Complex Detector Amplitude 
+				[$N_{src}\times N_{\lambda}\times N_{freq}$] 
+				[-] \\[2pt]
+\pmifield{DetOffset}     & Detector Temporal Offset (sec) \\[2pt]
+\hline
+\pmifield{MeasList}      & Measurement List (see below) \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Measurement List}
+
+The measurement list \pmifield{SD.MeasList} is a $N_{meas}\times
+N_{fields}$ table of indices into the other fields in SD (and,
+indirectly, Medium) on a measurement by measurement basis.  Currently
+there are 9 fields in the measurement list (although not all of them
+are supported by the toolbox yet).  The nine fields are:
+\begin{enumerate}
+\item \pmifield{SrcPos}
+\item \pmifield{DetPos}
+\item \pmifield{ModFreq}
+\item \pmifield{Lambda}
+\item \pmifield{EmissionWavelength} (not supported yet)
+\item \pmifield{TimeDelay}
+\item \pmifield{TimeGateWidth}
+\item \pmifield{CorrelationTime} (not supported yet)
+\item \pmifield{DataFormat} (not supported yet)
+\end{enumerate}
+The number of fields is not fixed; additional fields will be added in
+the future as the need arises.  The order of the fields, however,
+will not change.
+
+Indicies to fields that have no meaning in the context of the
+measurement (e.g., \pmifield{SD.ModFreq} with a time domain imager)
+should be set to `0' and the corresponding field does not need to be
+included in \pmifield{SD}.  Indicies into fields that do exist (e.g.,
+\pmifield{SD.SrcPos}, which always applies) should be between $1$ and
+$N_f$ where $N_f$ is the number of elements in the appropriate table
+(e.g., back to our \pmifield{SD.SrcPos} example, if there are $5$
+sources defined then the largest allowed value of
+\pmifield{SD.MeasList(:,1)} is $5$).
+
+\pmifield{readPMIData.m} generates \pmifield{SD.MeasList} as it loads
+the data; \pmifield{genMeasList} generates \pmifield{SD.MeasList} for
+simulated data.  The measurement list can also be generated manually,
+if needed.  The order of fields is not sigificant, but it must
+match the experimental data (if any).
+
+\subsection{Medium Structure}
+
+\pmifield{Medium} describes the optical properties of the medium and
+describes the volume to be reconstructed.  The fields in
+\pmifield{Medium} are: 
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\pmifield{Musao}          & Absorption Coefficient (1/cm) [$1\times N_{wvl}$]\\
+\pmifield{Muspo}          & Transport Scattering Coefficient 
+				(1/cm) [$1\times N_{wvl}$]\\
+\pmifield{idxRefr}        & Index of Refraction [$1\times N_{wvl}$]\\
+\hline
+\pmifield{Geometry}       & Model geometry (`inf', `semi', or `slab')\\
+\pmifield{Slab}\_Thickness& Slab thickness, if applicable \\
+\pmifield{CompVol}        & Computational region of interest (see below) \\
+\hline
+\pmifield{Object}         & Optical perturbations in ROI (see below) \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{CompVol Structure}
+
+\pmifield{Medium.CompVol} specifies the computational region of
+interest (i.e., the volume to be reconstructed).  There are several
+ways of specifying the volume, with varying degrees of support within
+the toolbox.  When in doubt, use ``uniform''.  Alternate types
+are ``computed'' and ``list''---see sampleVolume.m for how they're used.
+
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\pmifield{Type}  & How volume is specified, `uniform' is recommended \\
+\hline
+\pmifield{X}     & Points on X axis (uniformly spaced if type `uniform') \\
+\pmifield{Y}     & Points on Y axis \\
+\pmifield{Z}     & Points on Z axis \\
+\hline
+\pmifield{XStep} & \\
+\pmifield{YStep} & Voxel size, used to compute dV \\
+\pmifield{ZStep} & \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Object Vector}
+
+\pmifield{Medium.Object} is a vector of cells that specify
+perturbations used in calculating the forward problem.  Object does not
+need to be defined if you're working with homogeneous volumes.
+
+All \pmifield{Object}'s share three fields.  
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+Type & Type of perturbation \\
+\hline
+Mua  & Absorption (absolute) in the perturbation, per wavelength \\
+Musp & Scattering (absolute) in the perturbation, per wavelength \\
+\hline
+\end{tabular}
+\end{center}
+
+In addition, depending on the value of
+\pmifield{Object.Type}, additional fields may need to be defined.
+\begin{center}
+\begin{tabular}{|c|l|l|}
+\hline
+``Sphere'' & \pmifield{Object.Pos}    & Center of sphere (X,Y,Z) \\
+           & \pmifield{Object.Radius} & Radius of sphere (cm) \\
+\hline
+``Block''  & \pmifield{Object.Pos}    & Center of box (X,Y,Z) \\
+           & \pmifield{Object.Dims}   & Length of edges (cm) \\
+\hline
+``Image''  & \multicolumn{2}{l}{No extra fields, but
+		\pmifield{Mua} and \pmifield{Musp} are
+		 $N_{voxel}\times N_\lambda$} \\
+\hline
+\end{tabular}
+\end{center}
+See calcDelMuA.m for complete details.
+
+\section{PMI Toolbox routines}
+
+This is a mostly-complete list of toolbox routines and what they do.
+Utility routines that are not normally called by the end user are not
+included.  In all cases, ``help function\_name'' should print out some
+useful information on how to call the individual function
+\pmifile{function\_name}.
+
+\subsection{General utilities}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{pmipath.m}      & Add all the PMI toolbox directories to the
+				current path \\ \hline 
+\pmifile{genMeasList.m}  & Auto-generate a measurement list \\ \hline
+\pmifile{sampleVolume.m} & Given Medium.CompVol, generate a vector of
+				voxel centers \\ \hline
+\pmifile{calcSep.m}      & Calculate source-detector separation of each
+				measurement pair \\ \hline 
+\pmifile{calcAffine.m}   & Calculate Affine transform between two sets of
+				coordinates \\ \hline
+\end{tabular}
+
+\subsection{Data processing}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{readPMIData.m}   & Read PMI Data Formatted files \\ \hline
+\pmifile{writePMIData.m}  & Write data out in PMI Data Format \\ \hline
+\pmifile{fitSD.m}         & Fit complex source-detector coefficients \\ \hline
+\pmifile{fitSDAmp.m}      & Fit source-detector, amplitude only \\ \hline
+\pmifile{fitSDPhs.m}      & Fit source-detector, phase only \\ \hline
+\pmifile{fitBackground.m} & Brute-force search for optical properties \\ \hline
+\end{tabular}
+
+\subsubsection{Visualization}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{plotData.m}       & Plot data seen by each source/detector \\ \hline
+\pmifile{showImage.m}      & Show reconstructed data as slices \\ \hline
+\pmifile{showVolume.m}     & Show reconstructed data as volume \\ \hline
+\pmifile{plotDimensions.m} & Aesthetic subplot sizes \\ \hline
+\end{tabular}
+
+\subsection{Forward problem}
+
+\subsubsection{General}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{isFD.m}                & Given SD, decide if 
+		FD is appropriate \\ \hline
+\pmifile{isTD.m}                & Given SD, decide if 
+		TD is appropriate \\ \hline
+\pmifile{calcDelMuA.m}          & Wrapper, calculate abs. 
+		perturbations \\ \hline
+\pmifile{calcDelMuSp.m}         & Wrapper, calculate scat. 
+		perturbations \\ \hline
+\pmifile{genBlock.m}            & Generate block perturbation \\ \hline
+\pmifile{genSphere.m}           & Generate spherical Jacobian \\ \hline
+\pmifile{Pert\_Grad.m}          & Gradient of a perturbation \\ \hline
+\pmifile{genSDJacobian.m}       & Jacobian for amplitude update \\ \hline
+\pmifile{genPosJacobian.m}      & Jacobian for position update \\ \hline
+\pmifile{genMuJacobian.m}       & Jacobian for $\mu$ \\ \hline
+\pmifile{genJacobianFrom2pts.m} & Jacobian from full-born calc \\ \hline
+\pmifile{DPDWHelmholtz.m}       & High-level wrapper, generate 2-pt\\ \hline
+\pmifile{genBornMat.m}          & Calculate forward problem $A$ and
+					$\phi_0$ \\ \hline 
+\pmifile{genBornData.m}         & Calculate forward problem and
+					$\phi_{scat}$ \\ \hline 
+\pmifile{calcExtBnd.m}          & Calculate extrapolated boundary \\ \hline
+\pmifile{getImageCharge.m}      & Given $z_{bnd}$, find $z_{img}$ \\ \hline
+\pmifile{moveSrcSlab.m} 	& In a slab or semi-infinite geometry, move 
+					``sources'' one \\
+                		& \quad scattering length 
+					into the medium \\ \hline 
+\end{tabular}
+
+\subsubsection{Frequency domain/Continuous wave imaging}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{FD2pt.m}           & Generate FD fluence $\phi_0$ \\ \hline
+\pmifile{FD3pt.m}           & Generate FD sensitivity matrix $A$ \\ \hline
+\pmifile{FD\_GF.m}          & FD Green's function\\ \hline
+\pmifile{FD\_GradGF.m}      & Gradient of FD Green's function\\ \hline
+\end{tabular}
+
+\subsubsection{Time domain imaging}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{TD2pt.m}      & Generate TD fluence $\phi_0$ \\ \hline
+\pmifile{TD3pt.m}      & Generate TD sensitivity matrix $A$ \\ \hline
+\pmifile{TD\_GF.m}     & TD Green's function \\ \hline
+\pmifile{TD\_GradGF.m} & Gradient of TD Green's function \\ \hline
+\end{tabular}
+
+\subsection{Interfacing with tMCimg and tFDimg forward modelers}
+
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{PMItoMC.m}	& Given \pmifield{SD}/\pmifield{Medium}, write
+			out .cfg config file for \pmifile{tMCimg} \\ \hline
+\pmifile{PMItoFD.m}	& Given \pmifield{SD}/\pmifield{Medium}, write
+			out .cfg config file for \pmifile{tFDimg} \\ \hline
+\pmifile{MCConfig.m}	& Read a .inp config file \\ \hline
+\pmifile{loadMC2pt.m}	& Read a .2pt photon density file \\ \hline
+\pmifile{readMCHis.m}	& Read a .his photon history file \\ \hline
+\end{tabular}
+
+\subsection{Inverse problem}
+
+Most direct linear reconstructions (e.g.\ Tikhonov, tSVD, etc.) are
+simple enough to be handled directly on the command line, so there's
+no need to write a separate inversion routine.  The routines below,
+however, are sufficiently involved to warrant writing up as individual
+functions.
+
+\noindent
+\begin{tabular}{|l|l|}
+\hline
+\pmifile{art.m}   & Algebraic Reconstruction Technique \\ \hline
+\pmifile{sirt.m}  & Simultaneous Iterative Reconstruction Technique \\ \hline
+\pmifile{tcgls.m} & Truncated Conjugate Gradient \\ \hline
+\end{tabular}
+
+\end{document}

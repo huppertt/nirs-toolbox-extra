@@ -1,4 +1,4 @@
-function [densitymean densitymax densitymin] = meshdensity(mesh)
+function [densitymean, densitymax, densitymin] = meshdensity(mesh)
 
 densitymean=1;
 densitymax=1;
@@ -21,10 +21,10 @@ nsample=round(n/10);
 ifaces=ceil((n-1)*rand(1,nsample));
 density=zeros(nsample,3);
 for ii=1:nsample
-    ivert=faces(ifaces(ii),:);
-    density(ii,1)=dist3(vertices(ivert(1),:), vertices(ivert(2),:));
-    density(ii,2)=dist3(vertices(ivert(1),:), vertices(ivert(3),:));
-    density(ii,3)=dist3(vertices(ivert(2),:), vertices(ivert(3),:));
+    ivert = faces(ifaces(ii),:);
+    density(ii,1) = dist3(vertices(ivert(1),:), vertices(ivert(2),:));
+    density(ii,2) = dist3(vertices(ivert(1),:), vertices(ivert(3),:));
+    density(ii,3) = dist3(vertices(ivert(2),:), vertices(ivert(3),:));
 end
 densitymean = mean(density(:));
 densitymax = max(density(:));

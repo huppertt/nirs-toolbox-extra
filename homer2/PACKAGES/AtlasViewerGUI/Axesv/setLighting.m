@@ -29,6 +29,8 @@ switch(obj.name)
             ];
     case {'headsurf','pialsurf','fwmodel','labelssurf'}
         position = gen_bbox(obj.mesh.vertices, 50);
+    case 'headvol'
+        position = gen_bbox(obj.img, 50);
 end
 
 
@@ -55,6 +57,12 @@ for ii=1:size(position,1)
         style='infinite';
     end
 
+    if ~isempty(axesv(1).handles.lighting)
+        if ishandle(axesv(1).handles.lighting(ii))
+            delete(axesv(1).handles.lighting(ii));
+        end
+    end
+    
     hl(ii) = camlight;
     set(hl(ii),'position',position(ii,:),'color',[c(ii) c(ii) c(ii)],...
        'visible',visible,'style',style);

@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Fitting Source/Detector Coupling Coefficients</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Fit Source and Detector Amplitudes</h1>
+
+<p id="Description"><mat>fitSD()</mat> and its cousins estimate the
+source and detector amplitudes and/or phases by minimizing the
+difference between the experimental data and a theoretical prediction.
+If a theory curve is not supplied as a function argument, then one is
+calculated from the given <mat>SD</mat> and <mat>Medium</mat>
+structures.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="fitSD.m">
+<tr><th class="syntaxHead" rowspan="3">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[sa, da, pa] = fitSD(SD, Medium, MeasList, data[, Phi0]);
+    </td>
+</tr>
+<tr>
+    <td class="matfunc" colspan="2">
+	[sa, da, pa] = fitSDAmp(SD, Medium, MeasList, data[, Phi0]);
+    </td>
+</tr>
+<tr>
+    <td class="matfunc" colspan="2">
+	[sa, da, pa] = fitSDPhs(SD, Medium, MeasList, data[, Phi0]);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to be fit against</td>
+</tr>
+<tr>
+    <td class="varname">Phi0</td>
+    <td>Theory results (optional).  If missing, the theory result will be
+      re-calculated from <mat>SD</mat>, <mat>Medium</mat>, and
+      <mat>MeasList</mat>.</td>
+</tr>
+<tr><th rowspan="3" class="syntaxHead">Outputs:</th>
+    <td class="varname">sa</td>
+    <td>Source amplitude coefficients (can use as new
+	<mat>SD.SrcAmp</mat>)</td>
+</tr>
+<tr>
+    <td class="varname">da</td>
+    <td>Detector amplitude coefficients (can use as new
+	<mat>SD.DetAmp</mat>)</td>
+</tr>
+<tr>
+    <td class="varname">pa</td>
+    <td>Scaling factors to rescale previous Phi0 to data amplitudes</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>For every source-detector pair, the value calculated by the toolbox
+for the measured fluence is
+</p>
+<math xmlns="&mathml;" display="block">
+    <msubsup>
+	<mi>&Phi;</mi>
+	<mo>i</mo>
+	<mn>0</mn>
+    </msubsup>
+    <mo>=</mo>
+    <msub>
+	<mi>S</mi>
+	<mrow>
+	    <mi>j</mi>
+	    <mfenced>
+		<mi>i</mi>
+	    </mfenced>
+	</mrow>
+    </msub>
+    <mo>&InvisibleTimes;</mo>
+    <msub>
+	<mi>D</mi>
+	<mrow>
+	    <mi>k</mi>
+	    <mfenced>
+		<mi>i</mi>
+	    </mfenced>
+	</mrow>
+    </msub>
+    <mo>&InvisibleTimes;</mo>
+    <msup>
+	<mi>&phi;</mi>
+	<mn>0</mn>
+    </msup>
+</math>
+<p class="noindent">
+where
+<math xmlns="&mathml;" display="inline">
+    <msub>
+	<mi>S</mi>
+	<mrow>
+	    <mi>j</mi>
+	    <mfenced>
+		<mi>i</mi>
+	    </mfenced>
+	</mrow>
+    </msub>
+</math>
+is the source amplitude <mat>SD.SrcAmp</mat> used to make the 
+<math xmlns="&mathml;" display="inline"><mi>i</mi></math>-th measurement,
+<math xmlns="&mathml;" display="inline">
+    <msub>
+	<mi>D</mi>
+	<mrow>
+	    <mi>k</mi>
+	    <mfenced>
+		<mi>i</mi>
+	    </mfenced>
+	</mrow>
+    </msub>
+</math>
+is the detector amplitude <mat>SD.DetAmp</mat> used to make the 
+<math xmlns="&mathml;" display="inline"><mi>i</mi></math>-th measurement,
+and
+<math xmlns="&mathml;" display="inline">
+    <msup>
+	<mi>&phi;</mi>
+	<mn>0</mn>
+    </msup>
+</math>
+is the theoretic calculation with all the amplitudes set to 
+<math xmlns="&mathml;" display="inline"><mn>1.0</mn></math>.
+</p>
+
+<p>
+In the Rytov approximation, the source and detector amplitudes that
+minimize the difference between the data and the theory reduce to a
+system of linear equations (in the Born approximation, the equations
+are non-linear).  The matrix that represents this system of equations
+is rank-deficient, but can be made well-posed by arbitrarily assigning
+one of the amplitudes (either a source or a detector) to have a value
+of <math xmlns="&mathml;" display="inline"><mn>1.0</mn></math>.  Phase
+terms are handled the same way (the real part of the logarithm give
+the amplitude fits, the imaginary part is the phase fits).</p>
+
+<p> For more information see:
+<div class="reference">
+  David A. Boas, Thomas Gaudette, and Simon R. Arridge, 
+  &quot;Simultaneous imaging and optode calibration with
+        diffuse optical tomography,&quot; 
+  <a href="http://www.opticsexpress.org/"><i>Optics Express</i></a>, 
+  <b>8</b>(5), pg.&nbsp;263, 2001.
+</div>
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

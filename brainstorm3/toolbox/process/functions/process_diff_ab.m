@@ -3,9 +3,9 @@ function varargout = process_diff_ab( varargin )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -19,7 +19,7 @@ function varargout = process_diff_ab( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2010-2015
+% Authors: Francois Tadel, 2010-2019
 
 eval(macro_method);
 end
@@ -32,7 +32,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Filter2';
     sProcess.SubGroup    = 'Difference';
     sProcess.Index       = 150;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/Tutorials/Difference';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/Difference';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'data', 'results', 'timefreq', 'matrix'};
     sProcess.OutputTypes = {'data', 'results', 'timefreq', 'matrix'};
@@ -76,9 +76,14 @@ function sOutput = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         sOutput.ColormapType = 'stat2';
     end
     % Time-frequency: Change the measure type
-    if strcmpi(sInputsA(1).FileType, 'timefreq')
-        sOutput.Measure = 'other';
-    end
+    % if strcmpi(sInputsA(1).FileType, 'timefreq')
+    %     sOutput.Measure = 'other';
+    % end
+    sOutput.nAvg = sInputsA.nAvg + sInputsB.nAvg;
+    % Effective number of averages
+    % Leff = 1 / sum_i(w_i^2 / Leff_i),  with w1=1 and w2=-1
+    %      = 1 / (1/Leff_A + 1/Leff_B))
+    sOutput.Leff = 1 ./ (1 ./ sInputsA.Leff + 1 ./ sInputsB.Leff);
 end
 
 

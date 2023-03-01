@@ -26,7 +26,11 @@ for ii=1:nMeas
        
     % Find fluence profiles of the selected optodes
     [fwmodel, iFluenceSrc, iFluenceDet] = findSelectedOptodeFluences(fwmodel, probe, T_vol2mc);
-    
+
+    % Update number of wavelengths based on the number in the fluence
+    % profiles
+    fwmodel.nWavelengths = size(fwmodel.fluenceProf(1).intensities,3);
+
     if fwmodel.Ch(1) & fwmodel.Ch(2)
         fwmodel = genSensitivityProfile(fwmodel, probe, iFluenceSrc, iFluenceDet);
     end   
@@ -176,7 +180,10 @@ i=1; j=2;
 
 for iW=1:fwmodel.nWavelengths
     As = fwmodel.fluenceProf(i).intensities(iFluenceSrc,:,iW);
+    As(isnan(As))=0;  % A MC appliaction might generate NaN values. Set them to zeros
+    
     Ad = fwmodel.fluenceProf(j).intensities(iFluenceDet,:,iW);
+    Ad(isnan(Ad))=0;  % A MC appliaction might generate NaN values. Set them to zeros
     
     voxPerNode = reshape(fwmodel.voxPerNode, [size(As,1), size(As,2)]);
     
@@ -210,7 +217,7 @@ for iW=1:fwmodel.nWavelengths
     else
         disp(sprintf('No photons detected between Src %d and Det %d',fwmodel.Ch(1),fwmodel.Ch(2)))
         fwmodel.Adot(iMeas,:,iW) = zeros(size(As));
-    end    
+    end
 end
 
 

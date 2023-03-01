@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Calculate affine transform</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Calculate affine transform</h1>
+
+<p  id="Description">Calculates affine transform from points
+<math xmlns="&mathml;">
+  <msub>
+    <mfenced>
+      <mi>x</mi>
+      <mi>y</mi>
+    </mfenced>
+    <mo>i</mo>
+  </msub>
+</math>
+to
+<math xmlns="&mathml;">
+  <msub>
+    <mfenced>
+      <mi>u</mi>
+      <mi>v</mi>
+    </mfenced>
+    <mo>i</mo>
+  </msub>
+</math>
+such that
+</p>
+<math xmlns="&mathml;" display="block">
+    <msub>
+	<mfenced>
+	    <mi>u</mi>
+	    <mi>v</mi>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+    <mo>=</mo>
+    <mi type="matrix">A</mi>
+    <msub>
+	<mfenced>
+	    <mi>x</mi>
+	    <mi>y</mi>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+    <mo>+</mo>
+    <mpadded width="+1em">
+	<mi type="vector">B</mi>
+    </mpadded>
+    <mo>&ForAll;</mo>
+    <mi>i</mi>
+    <mtext>.</mtext>
+</math>
+<p class="noindent">
+The transformation is parameterized in terms of a
+<math xmlns="&mathml;"><mn>2</mn><mo>&times;</mo><mn>2</mn></math>
+transformation matrix
+<math xmlns="&mathml;"><mi type="matrix">A</mi></math>
+and a 2-element displacement vector
+<math xmlns="&mathml;"><mi type="vector">B</mi></math>.
+</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="calcAffine.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      [A,B] = calcAffine(x,y,u,v);
+    </td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Inputs:</th>
+    <td class="varname">x,y</td>
+    <td>Initial coordinates</td>
+</tr>
+<tr>
+    <td class="varname">u,v</td>
+    <td>Final coordinates</td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">A</td>
+    <td>Transformation matrix</td>
+</tr>
+<tr>
+    <td class="varname">B</td>
+    <td>Displacement vector</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>The affine transform is are 6-parameter transform, so at least
+three unique pairs of measurements must be supplied.  If more than
+three pairs are supplied (which is recommended), then the calculation
+of the transform is implemented as a linear least-squares problem.  In
+other words, the transformation
+<math xmlns="&mathml;">
+    <mfenced open="[" close="]">
+	<mi type="matrix">A</mi>
+	<mi type="vector">B</mi>
+    </mfenced>
+</math>
+maps from
+<math xmlns="&mathml;">
+    <msub>
+	<mfenced>
+	    <mi>x</mi>
+	    <mi>y</mi>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+</math>
+to
+<math xmlns="&mathml;">
+    <msub>
+	<mfenced>
+	    <mi>u</mi>
+	    <mi>v</mi>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+</math>
+such that the mean square error between the given
+<math xmlns="&mathml;">
+    <msub>
+	<mfenced>
+	    <mi>u</mi>
+	    <mi>v</mi>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+</math>
+and the calculated
+<math xmlns="&mathml;">
+    <msub>
+	<mfenced>
+	    <msup>
+		<mi>u</mi>
+		<mo>&prime;</mo>
+	    </msup>
+	    <msup>
+		<mi>v</mi>
+		<mo>&prime;</mo>
+	    </msup>
+	</mfenced>
+	<mi>i</mi>
+    </msub>
+</math>
+is minimized.
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

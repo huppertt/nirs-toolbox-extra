@@ -6,13 +6,25 @@ if(isfield(SD,'Lambda'))
 else
     probe.lambda=[];
 end
+
+% Determine units of src/det coordinates
+if(isfield(SD,'SpatialUnit'))
+    unitsStr = SD.SpatialUnit;
+else
+    unitsStr = 'mm';
+end
+sdUnitsFactor = 1;
+if ischar(unitsStr) && strcmp(unitsStr,'cm')
+    sdUnitsFactor = 10;   % convert to mm if SD units are cm
+end
+
 if(isfield(SD,'SrcPos'))
-    probe.srcpos=SD.SrcPos;
+    probe.srcpos=sdUnitsFactor*SD.SrcPos;
 else
     probe.srcpos=[];
 end
 if(isfield(SD,'DetPos'))
-    probe.detpos=SD.DetPos;
+    probe.detpos=sdUnitsFactor*SD.DetPos;
 else
     probe.detpos=[];
 end

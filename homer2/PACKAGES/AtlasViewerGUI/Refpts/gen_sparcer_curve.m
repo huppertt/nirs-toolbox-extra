@@ -1,4 +1,4 @@
-function [curve_seg_new len max_gap] = gen_sparcer_curve(curve_seg, distmin, surf)
+function [curve_seg_new, len, max_gap] = gen_sparcer_curve(curve_seg, distmin, surf)
 
 ii=1;
 curve_seg_new(1,:) = curve_seg(1,:);
@@ -34,7 +34,7 @@ while ii<N
 end
 
 if exist('surf','var')
-    curve_seg_new = pullPtsToSurf(curve_seg_new, surf, 'center');
+    curve_seg_new = pullPtsToSurf(curve_seg_new, surf, 'center', 0, false);
 end
 
 [len max_gap] = curvelen(curve_seg_new);

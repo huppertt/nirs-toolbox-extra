@@ -1,21 +1,18 @@
-function axesv = displayAxesv(axesv, headsurf, digpts)
+function axesv = displayAxesv(axesv, headsurf, headvol, digpts)
 
 if isempty(axesv)
     return;
 end
 
-zoommore = .8;
-if ~digpts.isempty(digpts)
-    axesv(1).mode = 'points';
-    if headsurf.isempty(headsurf)
-        zoommore = 1;
-    end
+% for displayAxesv whichever head object (headsurf or headvol) 
+% is not empty will work. 
+if ~headsurf.isempty(headsurf)
+    headobj = headsurf;
 else
-    axesv(1).mode = 'surface';
-    zoommore = 1.3;
+    headobj = headvol;
 end
 
-view(0,90);
+%%%% Position axes 
 axis(axesv(1).handles.axesSurfDisplay,'vis3d');
 axis(axesv(1).handles.axesSurfDisplay,'equal');
 set(axesv(1).handles.axesSurfDisplay,'units','normalized');
@@ -24,31 +21,35 @@ if strcmp(axesv(1).mode,'surface')
     set(axesv(1).handles.axesSurfDisplay, 'position', [pos(1) pos(2) .5 .4])
 end
 
-axesv = setLighting(axesv, headsurf);
+%%%% Set axes boundaries 
+set(axesv(1).handles.axesSurfDisplay, {'xlimmode','ylimmode','zlimmode'}, {'manual','manual','manual'});
+padding = 50;
+xlim = get(axesv(1).handles.axesSurfDisplay, 'xlim');
+ylim = get(axesv(1).handles.axesSurfDisplay, 'ylim');
+zlim = get(axesv(1).handles.axesSurfDisplay, 'zlim');
+set(axesv(1).handles.axesSurfDisplay, 'xlim',[xlim(1)-padding, xlim(2)+padding])
+set(axesv(1).handles.axesSurfDisplay, 'ylim',[ylim(1)-padding, ylim(2)+padding])
+set(axesv(1).handles.axesSurfDisplay, 'zlim',[zlim(1)-padding, zlim(2)+padding])
+p = get(axesv(1).handles.axesSurfDisplay, 'position');
+set(axesv(1).handles.axesSurfDisplay, 'position', [p(1), 1-p(4)-.13, p(3), p(4)]);
 
-set(axesv(1).handles.axesSurfDisplay, 'cameraupvector', axesv(1).cameraupvector);
+%%%% Set the lighting
+axesv = setLighting(axesv, headobj);
 
-% Usage:      setInitOrientation(axesobj, verr, verl, horr, horl, up, down)
-camposvector = [2200.00 2800.00 -2200.00];
-switch(headsurf.orientation)
-    case 'LIA'
-        setOrientation(axesv, 90, 5, 30, 0, 0, 20);
-        camposvector = [2200.00 2800.00 -2200.00];
-    case 'ASR'
-        setOrientation(axesv, 0, 0, 0, 0, 0, 0);
-        camposvector = [-2200.00 -2800.00 -2200.00];
-    case 'ARI'
-        setOrientation(axesv, 0, 0, 0, 0, 0, 0);
-        camposvector = [-2200.00 2000.00 2800.00];
+
+%%%% Before updating axesv(1).cameraposition and axesv(1).cameratarget 
+%%%% get old distance between them. 
+d0 = [];
+if ~isempty(axesv(1).cameraposition) & ~isempty(axesv(1).cameratarget)
+    v0 = axesv(1).cameraposition - axesv(1).cameratarget;
+    d0 = sqrt( v0(1)^2 + v0(2)^2 + v0(3)^2 );
 end
 
-set(axesv(1).handles.axesSurfDisplay, {'xlimmode','ylimmode','zlimmode'}, {'manual','manual','manual'});
-
-% Find center of all the objects on the canvas
+%%%% Find center of all the objects on the canvas, and set caera target to it
 c1 = [];
 c2 = [];
-if ~headsurf.isempty(headsurf)
-    c1  = headsurf.centerRotation;
+if ~headobj.isempty(headobj)
+    c1  = headobj.centerRotation;
 end
 if ~digpts.isempty(digpts)
     c2  = digpts.center;
@@ -60,15 +61,37 @@ elseif ~isempty(c2)
 else
     c = [0,0,0];
 end
-
-% Find and set camera position 
-axesv(1).campos = c - camposvector;
-set(axesv(1).handles.axesSurfDisplay, 'cameraposition', axesv(1).campos);
-
-% Set where the camera is pointing to 
+axesv(1).cameratarget = c;
 if ~all(c==0)
-    set(axesv(1).handles.axesSurfDisplay, 'cameratarget', c);
+    set(axesv(1).handles.axesSurfDisplay, 'cameratarget', axesv(1).cameratarget);
 end
 
-camzoom(axesv(1).handles.axesSurfDisplay, axesv(1).zoomincr*zoommore);
+
+%%%% Set view angles 
+[~, v_up] = setViewAngles(axesv(1).handles.axesSurfDisplay, headobj.orientation, axesv(1).azimuth, axesv(1).elevation);
+axesv(1).cameraupvector = v_up;
+
+%%%% Set azimuth and elevation edit boxes in GUI
+[az_new, el_new] = getViewAngles(axesv(1).handles.axesSurfDisplay, headobj.orientation);
+set(axesv(1).handles.editViewAnglesAzimuth, 'string', sprintf('%0.2f', az_new));
+set(axesv(1).handles.editViewAnglesElevation, 'string', sprintf('%0.2f', el_new));
+camorbit(axesv(1).handles.axesSurfDisplay, 0,0,'data');
+set(axesv(1).handles.axesSurfDisplay, 'CameraUpVector',axesv(1).cameraupvector); 
+
+
+%%%% Find and set zoom by setting the camera position distance 
+%%%% from camera target.
+cp0 = get(axesv(1).handles.axesSurfDisplay, 'cameraposition');
+ct0 = get(axesv(1).handles.axesSurfDisplay, 'cameratarget');
+v1 = cp0-ct0;
+d1 = sqrt( v1(1)^2 + v1(2)^2 + v1(3)^2 );
+if ~isempty(d0)
+    cp_new = ct0 + (v1 * (d0/d1));
+else
+    cp_new = ct0 + (v1 * .7);
+end
+axesv(1).cameraposition = cp_new;
+set(axesv(1).handles.axesSurfDisplay, 'cameraposition', axesv(1).cameraposition);
+
+drawnow;
 

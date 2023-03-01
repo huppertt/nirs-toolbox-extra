@@ -25,7 +25,9 @@ dirnameOut = [dirname, 'fw/'];
 if exist([dirnameOut, 'headvol.vox'],'file')
     fwmodel.headvol = load_vox([dirnameOut, 'headvol.vox'], fwmodel.headvol);
     if ~isempty(headvol.center)
-        fwmodel.headvol.center = xform_apply(headvol.center, headvol.T_2mc);
+        % It's fwmodel.headvol not heavol that will have the correct transformation T_2mc
+        % since we're getting the transformed saved volume from fw not anatomical folder
+        fwmodel.headvol.center = xform_apply(headvol.center, fwmodel.headvol.T_2mc);
     else
         fwmodel.headvol.center = findcenter(fwmodel.headvol.img);
     end
@@ -106,18 +108,18 @@ if exist([dirnameOut, 'Adot.mat'],'file')
         fwmodel.Adot_scalp     = [];        
     end
     
-    set(fwmodel.handles.menuItemImageReconGUI,'enable','on');
+    if ~isempty(fwmodel.handles) && ishandle(fwmodel.handles.menuItemImageReconGUI)
+        set(fwmodel.handles.menuItemImageReconGUI,'enable','on');
+    end
     
 else
     
     fwmodel.Adot     = [];
     fwmodel.AdotDate = struct('num',0);
-    set(fwmodel.handles.menuItemImageReconGUI,'enable','off');
-    
-    if exist([dirnameOut, 'headvol.vox'], 'file')
-        headvol = load_vox([dirnameOut, 'headvol.vox']);
+    if ~isempty(fwmodel.handles) && ishandle(fwmodel.handles.menuItemImageReconGUI)
+        set(fwmodel.handles.menuItemImageReconGUI,'enable','off');
     end
-    
+       
     % Look at MC input files for forward model params only 
     % if not using precalculated fluence files
     if isempty(fwmodel.fluenceProfFnames)
@@ -127,7 +129,6 @@ else
             config = read_tMCimg_inp([dirnameOut, 'fw1.s1.inp']);
             fwmodel.nphotons = config.phot_num;
             for ii=1:size(config.tiss_prop,1)
-                fwmodel.headvol.tiss_prop(ii).name = headvol.tiss_prop(ii).name;
                 fwmodel.headvol.tiss_prop(ii).scattering(:,1) = config.tiss_prop(ii,1);
                 fwmodel.headvol.tiss_prop(ii).anisotropy(:,1) = config.tiss_prop(ii,2);
                 fwmodel.headvol.tiss_prop(ii).absorption(:,1) = config.tiss_prop(ii,3);
@@ -141,7 +142,6 @@ else
             config = read_tMCimg_inp([dirnameOut, 'fw2.s1.inp']);
             fwmodel.nphotons = config.phot_num;
             for ii=1:size(config.tiss_prop,1)
-                fwmodel.headvol.tiss_prop(ii).name = headvol.tiss_prop(ii).name;
                 fwmodel.headvol.tiss_prop(ii).scattering(:,2) = config.tiss_prop(ii,1);
                 fwmodel.headvol.tiss_prop(ii).anisotropy(:,2) = config.tiss_prop(ii,2);
                 fwmodel.headvol.tiss_prop(ii).absorption(:,2) = config.tiss_prop(ii,3);

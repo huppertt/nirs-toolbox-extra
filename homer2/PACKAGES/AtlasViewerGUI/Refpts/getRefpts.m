@@ -50,26 +50,42 @@ else
     rp = load([dirname refpts_fn],'-ascii');
     if exist([dirname, 'refpts2vol.txt'],'file')
         T_2vol = load([dirname, 'refpts2vol.txt'],'-ascii');
+    else
+        T_2vol = eye(4);
     end        
     rp = xform_apply(rp,T_2vol);
+    rp_labels = {};
     
     fid = fopen([dirname refpts_labels_fn],'rt');
     if fid~=-1
         for ii=1:size(rp,1)
-            rp_label{ii} = fgetl(fid);
+            rp_labels{ii} = fgetl(fid);
         end
         fclose(fid);
-    else
-        rp_label={};
     end
+    rp_labels = removeSpaces(rp_labels);
 
-    refpts.pos    = rp;
-    refpts.labels = removeSpaces(rp_label);
-    refpts.T_2vol = T_2vol;    
+    % Get the eeg system standard being used by the refpts, based on the
+    % LPA, RPA ear anatomy
+    ear_refpts_anatomy = getRefptsEarAnatomy(rp, rp_labels);
+    refpts = setRefptsEarAnatomy(refpts, ear_refpts_anatomy);
+
+    % Add the positions of points found in refpts files to eeg positions. 
+    % This (i.e., refpts.eeg_system.curves.<curvename>.pos) will be the entire set
+    % of available reference points. This set can be increased or
+    % recalculated using refpts.calcRrefpts().
+    refpts = init_eeg_pos(refpts, rp, rp_labels);
+    
+    % Determine set of active reference points based on the selected and
+    % configured eeg_system
+    refpts = set_eeg_active_pts(refpts);
+        
+    refpts.T_2vol = T_2vol;
+
     if length(refpts.labels)>=5
-        set(refpts.handles.menuItemCalculateRefpts,'enable','on');
+        set(refpts.handles.menuItemShowRefpts,'enable','on');
     else
-        set(refpts.handles.menuItemCalculateRefpts,'enable','off');    
+        set(refpts.handles.menuItemShowRefpts,'enable','off');    
     end
     
     if length(refpts.labels)>=50 & length(refpts.labels)<=100

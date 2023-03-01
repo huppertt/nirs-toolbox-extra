@@ -1,22 +1,26 @@
+function genMultWlFluenceFiles_CurrWorkspace()
 
-fp = './PACKAGES/AtlasViewerGUI/Data/Colin/fw/fluenceProf*.mat';
+rootfluencepath = './PACKAGES/AtlasViewerGUI/Data/Colin/fw/';
+
+if ~exist(rootfluencepath, 'dir')==7
+    return;
+end
+
+fp = [rootfluencepath, 'fluenceProf*.mat'];
 files = dir(fp);
 if isempty(files)
-    fp = '../PACKAGES/AtlasViewerGUI/Data/Colin/fw/fluenceProf*.mat';
+    if exist([rootfluencepath, 'fluenceProfs.tar'], 'file')==2
+        untar([rootfluencepath, 'fluenceProfs.tar'], rootfluencepath);
+    else
+        return;
+    end
 end
 files = dir(fp);
-
 if isempty(files)
     return;
 end
 
-[pp, fs] = getpathparts(fp);
-sp = buildpathfrompathparts(pp(1:end-1), fs(1:end-1,:));
-
-fprintf('Found fluence files in %s\n', sp)
-copyfile(fp, '.');
+fprintf('Found fluence files in %s\n', rootfluencepath)
 for ii=1:length(files)
-    genMultWavelengthSimInFluenceFiles(['./', files(ii).name], 2, sp);
+    genMultWavelengthSimInFluenceFiles([rootfluencepath, files(ii).name], 2);
 end
-delete('./fluenceProf*.mat');
-

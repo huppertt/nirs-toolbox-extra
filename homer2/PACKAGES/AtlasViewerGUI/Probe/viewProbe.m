@@ -19,11 +19,7 @@ end
 
 hold on;
 
-if 1
-    pts = prepPtsStructForViewing(optpos, probe.nsrc, 'numbers',[],14);
-else
-    pts = prepPtsStructForViewing(optpos, probe.nsrc, 'circles');
-end
+pts = prepPtsStructForViewing(optpos, probe.nsrc, 'probenum',[], 12);
 
 % Not sure we should do this for probe
 if leftRightFlipped(probe)

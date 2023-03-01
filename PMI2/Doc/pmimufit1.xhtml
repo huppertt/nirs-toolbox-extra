@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Fitting Individual Background Optical Properties</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Fitting Individual Background Optical Properties</h1>
+
+<p id="Description">If not known from some other experimental
+measurement, background optical properties can be obtained by fitting
+to the experimental data.  While <a href="pmimufit2.xhtml">generalized
+routines</a> for fitting the background optical properties are
+available, if only one set of optical properties 
+(<math xmlns="&mathml;">
+<msub>
+  <mi>&mu;</mi>
+  <mi>a</mi>
+</msub>
+</math> 
+or 
+<math xmlns="&mathml;">
+  <msubsup>
+    <mi>&mu;</mi>
+    <mi>s</mi>
+    <mi>&prime;</mi>
+  </msubsup>
+</math>)
+are needed, it is <strong>much</strong> faster to used the specialized
+fitting routines <mat>fitMua()</mat> and <mat>fitMusp()</mat>.
+</p>
+
+<p>These routines use the Matlab Optimization Toolbox, which is not
+part of the core Matlab package.  If the Optimization Toolbox is not
+available at your local site, try the 
+<a href="pmimufit2.xhtml">general fitting routines</a>, which do not
+require additional toolboxes be installed.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="fitMua.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	mua = fitMua(SD, Medium, MeasList, data);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to be fit against</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">mua</td>
+    <td>Best-fit optical absorption at each wavelength</td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="fitMusp.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	musp = fitMusp(SD, Medium, MeasList, data);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to be fit against</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">musp</td>
+    <td>Best-fit optical scattering at each wavelength</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p><mat>fitMua()</mat> and <mat>fitMusp()</mat> fit a theoretical
+curve to experimental data.  The functions are implemented using
+<mat>fminbnd()</mat>, a Matlab function from the Optimization Toolbox
+which implements a bounded golden-mean minimization of a user-supplied
+cost function.  Because the minimization is bounded and
+one-dimensional, convergence to the optimal solution is very fast.  If
+the minimum lies outside the default bounds, the function will return
+one of the endpoints as an "optimal" solution.  There is currently no
+way to change the bounds without editing the function directly.</p>
+
+<p>The fit proceeds by minimizing the cost function
+</p>
+<math xmlns="&mathml;" display="block">
+    <mi>C</mi> 
+    <mo>=</mo>
+    <msqrt>
+	<mrow>
+	    <msub>
+		<mo>&sum;</mo>
+		<mi>i</mi>
+	    </msub>
+	    <msup>
+		<mi>log</mi>
+		<mn>2</mn>
+	    </msup>
+	    <mo>&ApplyFunction;</mo>
+	    <mrow>
+		<mo fence="true">|</mo>
+		<msub>
+		    <mi>&Phi;</mi>
+		    <mo>i</mo>
+		</msub>
+		<mo>/</mo>
+		<msubsup>
+		    <mi>&Phi;</mi>
+		    <mo>i</mo>
+		    <mn>0</mn>
+		</msubsup>
+		<mfenced>
+		    <mi type="vector">&mu;</mi>
+		</mfenced>
+		<mo fence="true">|</mo>
+	    </mrow>
+	</mrow>
+    </msqrt>
+</math>
+<p class="noindent">
+where the
+<math display="inline">
+    <msub>
+	<mi>&Phi;</mi>
+	<mo>i</mo>
+    </msub>
+</math>
+are the individual experimental measurements and and
+<math xmlns="&mathml;" display="inline">
+    <msubsup>
+	<mi>&Phi;</mi>
+	<mo>i</mo>
+	<mn>0</mn>
+    </msubsup>
+    <mfenced>
+	<mi type="vector">&mu;</mi>
+    </mfenced>
+</math>
+are the theoretical predictions, given optical properties
+<math xmlns="&mathml;" display="inline"><mi type="vector">&mu;</mi></math>.
+The norm of the log of the ratio was chosen over the more common
+<math xmlns="&mathml;" display="inline">
+<msup><mi>&chi;</mi><mn>2</mn></msup></math> cost functions so as to give
+equal weighting to points with large and small amplitudes, which seems
+to yield a better fit to the data.
+
+Given the the optical properties and the theoretical curve, the cost
+function also tries to determine the source and detector coupling
+coefficients (see <mat><a href="pmisdfit.xhtml">fitSD()</a></mat>) that
+minimize the difference between theory and experiment.  This is done
+<em>before</em> computing the cost function <math xmlns="&mathml;"
+display="inline"><mi>C</mi></math>.
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>

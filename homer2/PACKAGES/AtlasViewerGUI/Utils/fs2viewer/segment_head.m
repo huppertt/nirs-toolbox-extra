@@ -1,128 +1,89 @@
-function [hseg tiss_type] = segment_head(outer_skin_surf_fn, ...
-                                         outer_skull_surf_fn, ...
-                                         inner_skull_surf_fn, ...
-                                         head_vol_fn, ...
-                                         csf_vol_fn, ...
-                                         gm_vol_fn, ...
-                                         wm_vol_fn)
-                                            
+function fs2viewer = segment_head(fs2viewer)
+
 %
 % USAGE:
 %
-% [hseg tiss_type] = segment_head(outer_skin_surf_fn, ...
-%                                 outer_skull_surf_fn, ...
-%                                 inner_skull_surf_fn, ...
-%                                 head_vol_fn, ...
-%                                 csf_vol_fn, ...
-%                                 gm_vol_fn, ...
-%                                 wm_vol_fn)
-%
-% 
-% DESCRIPTION: 
-%     
-% This function loads volume and surface files and a tranformation matrix 
-% file for head segmentation. It converts whatever surfaces are available 
-% to volumes. The transformation matrix is needed if there are surfaces, 
-% because the surfaces and volumes are in different coordinate spaces. 
-% The volume files have a transformation that can be used by surfaces to 
-% move into volume space. Once all the volumes are loaded the function 
-% calls segment_head_vols.m to combine all the volumes into one segmented 
-% volume of the head. 
-%
-% 
-% INPUTS:
-%
-% Names of the volume, surface and tranformation matrix files. 
-%
-%
-% OUTPUTS:
-% 
-% Single volume containing segmentation of the head. 
-%
-%
-% EXAMPLE 1: 
-%
-% The following is an example of segment_head usage with
-% FreeSurfer-reconstructed MR image files. The files are stored under 
-% the subject directory /autofs/space/monte_012/users/jdubb/workspaces \
-% /subjects/mind006. In this case the head and csf volume files aren't 
-% needed because outer_skin and inner_skull surfaces are available 
-% for this subject recontructed ME Flash dicoms. These surfaces will be  
-% converted to head and csf volumes and are better than using the 
-% MPRAGE-based T1 and brain volumes directly. 
-%
-% cd '/autofs/space/monte_012/users/jdubb/workspaces/subjects/mind006' 
-% [hseg] = segment_head('./bem/flash/outer_skin.tri', ...
-%                       './bem/flash/outer_skull.tri', ...
-%                       './bem/flash/inner_skull.tri', ...
-%                       [], ...
-%                       [], ...
-%                       './mri/aseg.nii', ...
-%                       './mri/wm.nii');
-% EXAMPLE 2:
-%
-% cd '/autofs/space/monte_012/users/jdubb/workspaces/subjects/mind006' 
-% hseg = segment_head([], [], [], './mri/T1_headonly.nii', ...
-%                     './mri/brain.nii', './mri/aseg.nii', 'mri/wm.nii');
-%
-%
+% [hseg, tiss_type] = segment_head(layers)
 %
 % AUTHOR: Jay Dubb (jdubb@nmr.mgh.harvard.edu)
 % DATE:   12/18/2012
-%  
+%
 
-vox2ras = eye(4);
+layers = fs2viewer.layers;
+dirnameVol = fs2viewer.mripaths.volumes;
 
-%%%% Open T1 properties file produced by mri_info
-% Load volumes 
-if(~isempty(head_vol_fn))
-    headnii = load_untouch_nii(head_vol_fn);
-    dims    = headnii.hdr.dime.dim(2:4);
-    head    = headnii.img;
-    vox2ras = get_nii_vox2ras(headnii);
-else
-    head = [];
+% Head volume
+if ~isempty(layers.head.filename)
+    if layers.head.isvolume
+        layers.head = loadMri(layers.head);
+        layers.head.surf2vol = inv(get_mri_vol2surf(layers.head.volume));
+        layers.head.volume.vol = isolate_volume(layers.head.volume.vol, fs2viewer.threshold);
+    else
+        layers.head.vol = surf_file2vol(layers.head.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(csf_vol_fn))
-    csfnii = load_untouch_nii(csf_vol_fn);
-    dims = csfnii.hdr.dime.dim(2:4);
-    csf = csfnii.img;
-    vox2ras = get_nii_vox2ras(csfnii);
-else
-    csf = [];
+% Skin volume
+if ~isempty(layers.skin.filename)
+    if layers.skin.isvolume
+        layers.skin = loadMri(layers.skin);    
+    else
+        layers.skin.volume.vol = surf_file2vol(layers.skin.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(gm_vol_fn))
-    gmnii = load_untouch_nii(gm_vol_fn);
-    dims = gmnii.hdr.dime.dim(2:4);
-    gm = gmnii.img;
-    vox2ras = get_nii_vox2ras(gmnii);
-else
-    gm = [];
+% Skull volume
+if ~isempty(layers.skull.filename)
+    if layers.skull.isvolume
+        [~, layers.skull] = loadMri(fs2viewer, layers.skull.filename);    
+    else
+        layers.skull.volume.vol = surf_file2vol(layers.skull.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(wm_vol_fn))
-    wmnii = load_untouch_nii(wm_vol_fn);
-    dims = wmnii.hdr.dime.dim(2:4);
-    wm = wmnii.img;
-    vox2ras = get_nii_vox2ras(wmnii);
-else
-    wm = [];
+% Dura volume
+if ~isempty(layers.dura.filename)
+    if layers.dura.isvolume
+        layers.dura = loadMri(layers.dura);    
+    else
+        layers.dura.volume.vol = surf_file2vol(layers.dura.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(outer_skin_surf_fn))
-    head = surf_file2vol(outer_skin_surf_fn, dims, inv(vox2ras));
+% CSF volume
+if ~isempty(layers.csf.filename)
+    if layers.csf.isvolume
+        layers.csf = loadMri(layers.csf);    
+    else
+        layers.csf.volume.vol = surf_file2vol(layers.csf.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(outer_skull_surf_fn))
-    outer_skull = surf_file2vol(outer_skull_surf_fn, dims, inv(vox2ras));
-else
-    outer_skull = [];
+% Gray matter volume
+if ~isempty(layers.gm.filename)
+    if layers.gm.isvolume
+        layers.gm = loadMri(layers.gm);    
+    else
+        layers.gm.volume.vol = surf_file2vol(layers.gm.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-if(~isempty(inner_skull_surf_fn))
-    csf = surf_file2vol(inner_skull_surf_fn, dims, inv(vox2ras));
+% White matter volume
+if ~isempty(layers.wm.filename)
+    if layers.wm.isvolume
+        layers.wm = loadMri(layers.wm);
+    else
+        layers.wm.volume.vol = surf_file2vol(layers.wm.filename, layers.head.volsize, layers.head.surf2vol);
+    end
 end
 
-[hseg tiss_type] = segment_head_vols(head, outer_skull, csf, gm, wm);
+%%%% Hijack the head mri volume to create segmentation mri file, hseg
+hseg = layers.head;
+[dname, ~, ext] = fileparts(layers.head.filename);
+hseg.filename = sprintf('%s/hseg%s', dname, ext);
+[hseg.volume.vol, hseg.tiss_type] = segment_head_vols(layers);
+
+fs2viewer.layers = layers;
+fs2viewer.hseg = hseg;
+fs2viewer.hseg.orientation = getOrientationFromMriHdr(fs2viewer.hseg.volume);
+

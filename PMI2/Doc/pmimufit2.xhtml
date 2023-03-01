@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>General Background Optical Property Functions</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">General Background Optical Property Functions</h1>
+
+<p id="Description">If not known from some other experimental
+measurement, background optical properties can be obtained by fitting
+to the experimental data.  While faster, specialized, 
+<a href="pmimufit1.xhtml">fitting routines</a> are available for
+fitting either the absorption or the scattering individually, the
+toolbox also includes generalized routines for finding both sets of
+optical coefficients simultaneously.  Since these routines do not need
+additional Matlab toolboxes, there are also suitable for sites with
+only the core Matlab toolboxes installed.</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="fitBackground.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[mus, mua, costfunc] = fitBackground(SD, Medium, MeasList, data);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to be fit against</td>
+</tr>
+<tr><th rowspan="3" class="syntaxHead">Outputs:</th>
+    <td class="varname">mus</td>
+    <td>X-values of cost function [vector]</td>
+</tr>
+<tr><td class="varname">mua</td>
+    <td>Y-values of cost function [vector]</td>
+</tr>
+<tr><td class="varname">costfunc</td>
+    <td>Cost function calculated on a regular grid [matrix].
+        For complex data, the amplitude and phase costs are
+        computed separately.</td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="newFitBackground.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+	[SD2, Medium2] = newFitBackground(SD, Medium, MeasList, data, muvec);
+    </td>
+</tr>
+<tr><th rowspan="4" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Experimental data to be fit against</td>
+</tr>
+<tr><th rowspan="2" class="syntaxHead">Outputs:</th>
+    <td class="varname">SD2</td>
+    <td>SD structure with best-fit SD.SrcAmp and SD.DetAmp values</td>
+</tr>
+<tr><td class="varname">Medium2</td>
+    <td>Medium structure with best-fit Muao and Muspo values</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p><mat>fitBackground()</mat> is obsolete except as a sanity check
+(and for anyone with a desperate need to find out what the cost
+function looks like).  Use <mat>newFitBackground()</mat> for any
+serious data analysis.</p>
+
+<p><mat>fitBackground()</mat> calculates a cost function over a fixed
+grid of points.  While the grid search is robust and useful for
+generating contour plots, it is not particularly accurate or
+efficient.</p>
+
+<p><mat>newFitBackground()</mat> is a much more useful function.  It
+simultaneous solves for the optical properties as well as the source
+and detector amplitudes by non-linearly minimizing the difference
+between the experimental data and the theoretical prediction.  The
+minimization is done using a Levenberg-Marquardt scheme which
+continually adjusts the regularization of the inverse and using
+numerical estimates of the Jacobian matrices (see 
+<mat><a href="gensdjacobian.xhtml">genSDJacobian()</a></mat> and
+<mat><a href="genmujacobian.xhtml">genMuJacobian()</a></mat>).</p>
+
+<p>For both <mat>fitBackground()</mat> and
+<mat>newFitBackground()</mat>, the cost function is given by
+</p>
+<math xmlns="&mathml;" display="block">
+    <mi>C</mi> 
+    <mo>=</mo>
+    <msqrt>
+	<mfenced open="&LeftAngleBracket;" close="&RightAngleBracket;">
+	    <mrow>
+		<msup>
+		    <mi>log</mi>
+		    <mn>2</mn>
+		</msup>
+		<mo>&ApplyFunction;</mo>
+		<mrow>
+		    <mfenced open="|" close="|">
+			<mrow>
+			    <mi>&Phi;</mi>
+			    <mo>/</mo>
+			    <msup>
+				<mi>&Phi;</mi>
+				<mn>0</mn>
+			    </msup>
+			    <mo>&ApplyFunction;</mo>
+			    <mfenced>
+				<mi type="vector">&mu;</mi>
+			    </mfenced>
+			</mrow>
+		    </mfenced>
+		</mrow>
+	    </mrow>
+	</mfenced>
+    </msqrt>
+</math>
+<p class="noindent">
+where the
+<math xmlns="&mathml;" display="inline">
+    <msub>
+	<mi>&Phi;</mi>
+	<mo>i</mo>
+    </msub>
+</math>
+are the individual experimental measurements,
+<math xmlns="&mathml;" display="inline">
+    <msubsup>
+	<mi>&Phi;</mi>
+	<mo>i</mo>
+	<mn>0</mn>
+    </msubsup>
+    <mfenced>
+	<mi type="vector">&mu;</mi>
+    </mfenced>
+</math>
+are the theoretical predictions, given optical properties
+<math xmlns="&mathml;" display="inline"><mi type="vector">&mu;</mi></math>,
+and the angle brackets denote an average over all measurements.
+Minimizing the function is equivalent to minimizing the residue in the
+Rytov approximation (which is what <mat>newFitBackground()</mat>
+actually does).
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

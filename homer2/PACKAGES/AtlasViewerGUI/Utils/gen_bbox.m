@@ -1,4 +1,4 @@
-function [bbox_vert bbox_vol] = gen_bbox(obj, paddingsize)
+function [bbox_vert, bbox_mp, bbox_vol] = gen_bbox(obj, paddingsize)
 
 % Usage:
 %
@@ -26,11 +26,14 @@ function [bbox_vert bbox_vol] = gen_bbox(obj, paddingsize)
 % Author: Jay Dubb (jdubb@nmr.mgh.harvard.edu)
 % Date:   01/27/2012
 
+bbox_vert = [];
+bbox_mp = [];
+bbox_vol = [];
 
 if ndims(obj)==3
     vol = obj;
     i = find(vol ~= 0);
-    [x y z] = ind2sub(size(vol), i);
+    [x, y, z] = ind2sub(size(vol), i);
     vert = [];
 elseif ndims(obj)==2
     vert = obj;
@@ -97,6 +100,17 @@ bbox_vert = [...
             maxx_p maxy_p maxz_p;...          
             ];
 
+% Get midpoints for all 6 cube faces        
+bbox_mp = [...
+           minx_p, miny_p+(maxy_p-miny_p)/2, minz_p+(maxz_p-minz_p)/2;...
+           maxx_p, miny_p+(maxy_p-miny_p)/2, minz_p+(maxz_p-minz_p)/2;...
+           minx_p+(maxx_p-minx_p)/2, miny_p, minz_p+(maxz_p-minz_p)/2;...
+           minx_p+(maxx_p-minx_p)/2, maxy_p, minz_p+(maxz_p-minz_p)/2;...
+           minx_p+(maxx_p-minx_p)/2, miny_p+(maxy_p-miny_p)/2, minz_p;...
+           minx_p+(maxx_p-minx_p)/2, miny_p+(maxy_p-miny_p)/2, maxz_p;...
+          ];
+        
+        
 % Translate bounding box coordinates to positive integer space
 T = [1 0 0 -minx_p+1; 0 1 0 -miny_p+1; 0 0 1 -minz_p+1; 0 0 0 1];
 bbox_vol = round(xform_apply(bbox_vert, T));

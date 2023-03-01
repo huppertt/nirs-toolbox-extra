@@ -108,7 +108,7 @@ end
 
 
 % Once probe data is loaded check if src/det data is there 
-if isempty(probe.srcpos) & isempty(probe.detpos)
+if isempty(probe.optpos)
 
     % 
     if ~isempty(digpts.digpts)
@@ -142,14 +142,8 @@ if isempty(probe.srcpos) & isempty(probe.detpos)
         probe.detmap = [1:probe.ndet];
         break;
     end
-
-    if isempty(probe.srcpos) & isempty(probe.detpos)
-        probe.srcpos = probe.optpos;
-        probe.nsrc = size(probe.srcpos,1);
-        probe.srcmap = [1:probe.nsrc];
-    end
-    
-elseif isempty(digpts.srcpos) & isempty(digpts.detpos)
+   
+elseif ~isempty(probe.optpos)
         
     % Check if the probe is already registered. One indicator is if
     % the probe isn't flat. Another is if all optodes are on or close to the head surface.
@@ -179,6 +173,12 @@ elseif isempty(digpts.srcpos) & isempty(digpts.detpos)
     probe.center = headsurf.center;
     probe.orientation = headsurf.orientation;
     
+    if isempty(probe.srcpos) & isempty(probe.detpos)
+        probe.srcpos = probe.optpos;
+        probe.nsrc = size(probe.srcpos,1);
+        probe.srcmap = [1:probe.nsrc];
+    end
+    
 elseif probeDigptsRelated(probe,digpts)
     
     % We have digitized some or all source and detector optodes.
@@ -202,6 +202,14 @@ elseif probeDigptsRelated(probe,digpts)
     end
     probe.center = digpts.center;
     probe.orientation = digpts.orientation;
+    
+elseif ~isempty(probe.optpos_reg)
+    
+    if isempty(probe.srcpos) & isempty(probe.detpos)
+        probe.srcpos = probe.optpos_reg;
+        probe.nsrc = size(probe.srcpos,1);
+        probe.srcmap = [1:probe.nsrc];
+    end
     
 end
 
@@ -227,8 +235,10 @@ if iscell(probe.al)
             continue;
         end
         if sum(strcmpi(refpts.labels, probe.al{ii,2}))==0
-            menu('The selected probe uses anchors points not included in the current anatomy.','Ok');
-            return;
+            if ~isnumber(probe.al{ii,2})
+	            menu('The selected probe uses anchors points not included in the current anatomy.','Ok');
+	            return;
+            end
         end
     end
 else

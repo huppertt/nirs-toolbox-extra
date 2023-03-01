@@ -1,4 +1,4 @@
-function save_tiss_type(filenm,tiss)
+function save_tiss_type(filenm, tiss)
 
 if isempty(tiss)
     return;
@@ -24,7 +24,7 @@ elseif iscell(tiss)
     end
 elseif isstruct(tiss)
     for ii=1:length(tiss)
-	fprintf(fid,'%s\n',tiss(ii).name);
+        fprintf(fid,'%s\n',tiss(ii).name);
     end
 end
 fclose(fid);

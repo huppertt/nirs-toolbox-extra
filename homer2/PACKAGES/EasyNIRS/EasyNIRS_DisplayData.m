@@ -16,7 +16,7 @@ end
 sclConc = 1e6; % convert Conc from Molar to uMolar
 
 axes(displayAxes(1))
-%cla
+cla
 
 if(ishandle(hmr.stim.LegendHdl))
    delete(hmr.stim.LegendHdl);
@@ -214,8 +214,8 @@ if ~isempty(hmr.plotLst)
         
         % Set the axes ranges  
         if flagReset==1
-            set(displayAxes(1),'xlim',[floor(min(t)) ceil(max(t))]);
-            set(displayAxes(1),'ylimmode','auto');
+                set(displayAxes(1),'xlimmode','auto');
+                set(displayAxes(1),'ylimmode','auto');
         else
             xlim(xx);
             ylim(yy);
@@ -338,7 +338,13 @@ if ~isempty(hmr.plotLst)
         else
             ylim('auto')
         end
-        
+                
+        if hmr.flagPlottRange
+            xlim(hmr.plottRange);              
+        else
+            xlim('auto')
+            set(displayAxes(1), 'xlim',[t(1), t(end)]);
+        end
         
         %%% Plot aux
         if ~isempty(aux)
@@ -481,7 +487,7 @@ if ~isempty(hmr.plotLst)
 
 end  %%% if ~isempty(hmr.plotLst)
 
-set(gca,'ygrid','on')
+set(gca,'ygrid','on');
 
 
 

@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>PMI: SD Structure</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">The SD Structure</h1>
+
+<p  id="Description"> The <mat>SD</mat> structure is used to store all
+the information about the "imager" being modeled, including source
+position, detector position, measurement order, and optical wavelength
+(information about the imaging volume is stored in the
+<mat>Medium</mat> structure, described 
+<a href="pmi-medium.xhtml">here</a>).  Fields that are not needed (for
+example, the modulation frequency <mat>SD.ModFreq</mat> for modeling
+a time-domain imager) do not need to be initialized.</p>
+
+<h2 id="Summary">Summary of SD Structure Fields</h2>
+
+<table title="SD Structure Fields and Their Meaning">
+<tr>
+  <th><mat>SrcPos</mat></th>        
+  <td>Source Positions [cm]</td> 
+</tr>
+<tr>
+  <th><mat>SrcAmp</mat></th>        
+  <td>Complex Source Amplitude</td> 
+</tr>
+<tr>
+  <th><mat>DetPos</mat></th>        
+  <td>Detector Positions [cm]</td> 
+</tr>
+<tr>
+  <th><mat>DetAmp</mat></th>        
+  <td>Complex Detector Amplitude</td> 
+</tr>
+<tr>
+  <th><mat>Lambda</mat></th>        
+  <td>Measurement wavelengths [nm]</td> 
+</tr>
+<tr>
+  <th><mat>ModFreq</mat></th>       
+  <td>Modulation Frequency [MHz]</td> 
+</tr>
+<tr>
+  <th><mat>TimeDelay</mat></th>     
+  <td>Delay to start of time gate [sec]</td> 
+</tr>
+<tr>
+  <th><mat>TimeGateWidth</mat></th> 
+  <td>Width of time gate [sec]</td> 
+</tr>
+<tr>
+  <th><mat>SrcOffset</mat></th>     
+  <td>Source Temporal Offset [sec]</td> 
+</tr>
+<tr>
+  <th><mat>DetOffset</mat></th>     
+  <td>Detector Temporal Offset [sec]</td> 
+</tr>
+<tr>
+  <th><mat>MeasList</mat></th>      
+  <td><a href="pmi-measlist.xhtml">Measurement List</a></td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<h3 id="Position">SD.SrcPos and SD.DetPos</h3>
+
+<p>The 
+<math xmlns="&mathml;" display="inline">
+  <mrow>
+    <mfenced>
+      <mi>x</mi>
+      <mi>y</mi>
+      <mi>z</mi>
+    </mfenced>
+  </mrow>
+</math>
+source and detector locations are specified as
+<math xmlns="&mathml;" display="inline">
+  <mrow>
+    <mi>N</mi>
+    <mo>&times;</mo>
+    <mn>3</mn>
+  </mrow>
+</math>
+
+matrices in the fields <mat>SD.SrcPos</mat> and <mat>SD.DetPos</mat>
+respectively.  All lengths are in centimeters.  For imaging geometries
+with a planar interface (i.e., everything except the "infinite"
+geometry), the air-tissue interface defines the
+<math xmlns="&mathml;" display="inline">
+  <mrow>
+    <mi>z</mi>
+    <mo>=</mo>
+    <mn>0</mn>
+  </mrow>
+</math>
+plane.  Other than this, the origin of the coordinate system is
+completely arbitrary (the forward problem is translationally invariant
+so only the relative separations matter).
+</p>
+
+<p>Except in the "infinite" imaging geometry, all fibers
+<strong>must</strong> be placed on the air-tissue 
+(<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>0</mn></math>
+or
+<math xmlns="&mathml;" display="inline"><mi>z</mi><mo>=</mo><mn>Z</mn></math>)
+interface.  Fibers that are not an in interface will be silently moved
+to the nearest interface.</p>
+
+<p>All fibers have zero NA, zero radius, and point into the medium along the
+<math xmlns="&mathml;" display="inline"><mo>&PlusMinus;</mo><mi>z</mi></math> 
+direction.</p>
+
+<h3 id="Amplitude">SD.SrcAmp and SD.DetAmp</h3>
+
+<p><mat>SD.SrcAmp</mat> and <mat>SD.DetAmp</mat> are matrices which
+hold the source amplitude and detector coupling coefficients
+respectively.  For frequency-domain imagers, these are complex numbers
+(magnitude and phase), otherwise they should be real-valued and
+strictly positive.  The size of the matrices are
+<math xmlns="&mathml;" display="inline">
+  <mrow>
+    <mi>N</mi> 
+    <mo>&times;</mo>
+    <msub>
+      <mi>N</mi>
+      <mi>wvl</mi>
+    </msub> 
+    <mo>&times;</mo>
+    <msub>
+      <mi>N</mi>
+      <mi>frq</mi>
+    </msub> 
+    <mo>&times;</mo>
+  </mrow>
+</math>
+where <math xmlns="&mathml;" display="inline"><mi>N</mi></math> is the
+number of sources [detectors] defined in <mat>SD.SrcPos</mat>
+[<mat>SD.DetPos</mat>],
+<math xmlns="&mathml;" display="inline"><msub><mi>N</mi><mi>wvl</mi></msub></math>
+is the number of wavelengths defined in <mat>SD.Lambda</mat> and
+<math xmlns="&mathml;" display="inline"><msub><mi>N</mi><mi>frq</mi></msub></math>
+is the number of frequencies defined in <mat>SD.ModFreq</mat> (or
+<math xmlns="&mathml;" display="inline"><mn>1</mn></math> if
+<mat>SD.ModFreq</mat> does not need to be defined).
+</p>
+
+<p>Because every measurement involves both a source and a detector,
+only the product
+<mat>SD.SrcAmp(iSrc,iWvl,iFrq)*SD.DetAmp(iDet,iWvl,iFrq)</mat> can be
+observed (for whatever <mat>iSrc</mat>, <mat>iDet</mat>,
+<mat>iFrq</mat>, <mat>iWvl</mat> is appropriate to a given
+measurement) and not the individual <mat>SD.SrcAmp</mat> and
+<mat>SD.DetAmp</mat> components (doubling all the <mat>SD.SrcAmp</mat>
+and halving all the <mat>SD.DetAmp</mat> leaves the final measurement
+unchanged).  This indeterminacy is intrinsic to the forward problem.
+The product of the source and detector amplitudes has dimensions of
+Watts (detected fluence times the active area of the detector).</p>
+
+<h3 id="Wavelength">SD.Lambda</h3>       
+
+<p><mat>SD.Lambda</mat> is a vector of imaging wavelengths.  For
+fluorescence measurements, <mat>SD.Lambda</mat> contains both
+excitation and emission wavelengths and the
+<a href="pmi-measlist.xhtml">measurement list</a> is used to
+distinguish between the two processes.  Wavelengths should be
+specified in nanometers.</p>
+
+<h3 id="Modulation">SD.ModFreq</h3>
+
+<p> For frequency-domain imagers, the vector <mat>SD.ModFreq</mat>
+holds the source modulation frequencies, in Megahertz.</p>
+
+<h3 id="DelayTime">SD.TimeDelay</h3>      
+
+<p> For time-domain imagers, the time
+<math xmlns="&mathml;" display="inline"><mi>t</mi><mo>=</mo><mn>0</mn></math>
+is, by definition, the time when the light enters the tissue.
+<mat>SD.TimeDelay</mat> gives the time interval between when the light
+entered the medium and the start of the measurement.
+<mat>SD.TimeDelay</mat> <strong>may</strong> be negative, although
+the intensity at negative times is always zero.</p>
+
+<p> For correlation measurements, <mat>SD.TimeDelay</mat> is the
+relative delay between the two events (whatever they might be).</p>
+
+<p>For both time-domain imaging and correlation imaging, the time
+delay should be specified in seconds.</p>
+
+<h3 id="GateWidth">SD.TimeGateWidth</h3>  
+
+<p>For gated time-domain detectors, <mat>SD.TimeGateWidth</mat> is the
+width of the gate, in seconds (a step gate response is implicitly
+assumed).  For photon counting systems or other binned detectors,
+<mat>SD.TimeGateWidth</mat> is the width of the individual bins
+(again, a step response is implicitly assumed).  If the gate width is
+set to <mat>0.0</mat>, then the convolution of the forward problem
+with the detector gate is skipped entirely (since a gate width of zero
+makes no sense experimentally).</p>
+
+<h3 id="TimeOffset">SD.SrcOffset and SD.DetOffset</h3>      
+
+The delays in <mat><a href="#DelayTime">SD.TimeDelay</a></mat> assume
+that all source/detector fibers introduce exactly the same delay.  In
+practice, the fibers all have slightly different lengths which leads
+to temporal fiber-to-fiber variation.  <mat>SD.SrcOffset</mat> and
+<mat>SD.DetOffset</mat> are matrices of delay corrections that provide
+a way to model small fiber length variations on a per-source and
+per-detector basis.  The actual time that the light enters the medium
+is <mat>0+SD.SrcOffset</mat> and the time that the detector begins
+collecting light is <mat>SD.TimeDelay+SD.DetOffset</mat>.
+
+<p>All temporal offsets are given in seconds.  The size of the matrix
+<mat>SD.SrcOffset</mat> (<mat>SD.DetOffset</mat>) is
+<math xmlns="&mathml;"> 
+  <msub>
+    <mi>N</mi>
+    <mi>src</mi> 
+  </msub>
+  <mi>&times;</mi> 
+  <msub>
+    <mi>N</mi>
+    <mi>wvl</mi> 
+  </msub>
+</math>
+(<math xmlns="&mathml;"> 
+<msub>
+  <mi>N</mi>
+  <mi>det</mi> 
+</msub>
+<mi>&times;</mi> 
+<msub>
+  <mi>N</mi>
+  <mi>wvl</mi> 
+</msub>
+</math>).
+</p>
+
+<h3 id="MeasList">SD.MeasList</h3>
+
+<p> The measurement list is a table of indicies into the other
+<mat>SD</mat> fields that describes the parameters to use for each
+experimental measurement.  The measurement list is explained in more
+detail <a href="pmi-measlist.xhtml">here</a>.  </p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

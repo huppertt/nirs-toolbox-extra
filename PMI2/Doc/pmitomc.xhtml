@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Write configuration files</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Write Configuration Files for tMCimg and tFDimg</h1>
+
+<p id="Description">Given <mat><a href="pmi-sd.xhtml">SD</a></mat> and
+<mat><a href="pmi-medium.xhtml">Medium</a></mat> structures, write out
+configuration files in a format suitable for use by either
+<a href="http://www.cims.nyu.edu/~barnett/software/">tFDimg</a> or
+<a href="http://www.nmr.mgh.harvard.edu/~jstott/tMCimg/">tMCimg</a>.  
+For any but the simplest configuration files, some amount of hand
+tuning may still be required.  In particular, there is no way to
+assign optical properties to the different segmented tissue types.
+</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="PMItoMC.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      PMItoMC(SD, Medium, basename, nPh, segfile);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">basename</td>
+    <td>Base filename; source, detector, wavelength, and frequency
+    will be appended automatically</td>
+</tr>
+<tr>
+    <td class="varname">nPh</td>
+    <td>Number of photons to be run</td>
+</tr>
+<tr>
+    <td class="varname">segfile</td>
+    <td>Name of the tissue segmentation file to use</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td colspan="2">None (writes files to disk)</td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="PMItoFD.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      PMItoFD(SD, Medium, basename, nPh, segfile);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">basename</td>
+    <td>Base filename; source, detector, wavelength, and frequency
+    will be appended automatically</td>
+</tr>
+<tr>
+    <td class="varname">nPh</td>
+    <td>Number of photons to be run (dummy parameter, ignored)</td>
+</tr>
+<tr>
+    <td class="varname">segfile</td>
+    <td>Name of the tissue segmentation file to use</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td colspan="2">None (writes files to disk)</td>
+</tr>
+</table>
+
+<h2 id="Details">Detailed Descriptions</h2>
+
+<p>
+See the <a href="http://www.nmr.mgh.harvard.edu/~jstott/tMCimg/">tMCimg</a>
+webpage for more information about <code>tMCimg</code> and its
+configuration file format.  
+The <a href="http://www.cims.nyu.edu/~barnett/software/">tFDimg</a> 
+finite-difference software (available locally) uses the same format
+for its configuration files.
+</p>
+
+<p>
+One file is generated for each unique
+source:detector:wavelength:frequency combination; the measurement is
+<strong>not</strong> used.  The different parameters used are encoded
+in the filename (e.g., <code>basefileD1F2L3.cfg</code> is the
+configuration file for detector 1, modulation frequency, and
+wavelength [or optical properties] 3).
+</p>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

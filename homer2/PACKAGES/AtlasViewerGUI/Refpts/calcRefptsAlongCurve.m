@@ -1,6 +1,6 @@
-function [refpts, curve_len] = calcRefptsAlongCurve(curve_pts, curve_len, labels, stepsize, curvename, direction)
+function [pos, curve_len] = calcRefptsAlongCurve(curve_pts, curve_len, labels, stepsize, curvename, direction)
 
-refpts = [];
+pos = {};
 
 if ~exist('direction', 'var') | (direction~='f' & direction~='b')
     direction = 'f';
@@ -19,9 +19,9 @@ for ii=1:length(labels)
     if strcmpi(labels{ii}, endlabel)
         break;
     end
-    [refpts(ii,:), len] = curve_walk(curve_pts, (ii*stepsize)*curve_len/100);
+    [pos{ii,1}, len] = curve_walk(curve_pts, (ii*stepsize)*curve_len/100);
     fprintf('%s = (%1.1f, %1.1f, %1.1f) is %1.2f away from %s\n', ...
-            labels{ii}, refpts(ii,1), refpts(ii,2), refpts(ii,3), len, startlabel);
+            labels{ii}, pos{ii}(1), pos{ii}(2), pos{ii}(3), len, startlabel);
 end
 
 

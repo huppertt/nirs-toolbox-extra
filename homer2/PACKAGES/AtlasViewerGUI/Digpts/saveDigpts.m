@@ -1,17 +1,14 @@
-function saveDigpts(digpts, dirname, mode)
+function digpts = saveDigpts(digpts, mode)
 
 if isempty(digpts) | isempty([digpts.srcpos; digpts.detpos; digpts.refpts.pos; digpts.pcpos])
     return;
 end
 
-if ~exist('dirname','var')
-    dirname = digpts.pathname;
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/'];    
+if isempty(digpts.pathname)
+    digpts.pathname = [pwd, '/'];
 end
+
+dirname = digpts.pathname;
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end

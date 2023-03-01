@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Generate measurement list</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Generate Measurement List</h1>
+
+<p id="Description"><mat>genMeasList()</mat> automatically generate a
+<a href="pmi-measlist.xhtml">measurement lists</a> using all possible
+measurements in the <mat>SD</mat>, possibly limited to those
+measurements meeting some additional criteria.</p>
+
+<p>If the <mat>Method</mat> is "all", then the measurement list
+contains all possible measurements.  The list is built up in the same
+order as the measurement fields (sources change fastest, then
+detectors, then modulation frequencies, and so on).
+</p>
+
+<p>If the <mat>Method</mat> is "SNR" then it must be followed by three
+optional parameters: the minimum signal-to-noise ratio [SNR] to keep
+(<mat>var1</mat>), the measured data (<mat>var2</mat>), and the
+standard deviation of the measured data (<mat>var3</mat>).  Only those
+points with a calculated SNR greater than <mat>var1</mat> will be
+used.  The measured data should initially be the same size and order
+as would be returned by <mat>genMeasList(SD, 'all');</mat>.
+</p>
+
+<p>If the <mat>Method</mat> is "Nearest" then only those measurements
+with a source-detector separation 
+<math xmlns="&mathml;"><mi>R</mi></math> less than 
+<math xmlns="&mathml;"><msub><mi>R</mi><mo>max</mo></msub></math>
+(passed as <mat>var1</mat>) are returned in the final measurement
+list.</p>
+
+<p>If the <mat>Method</mat> is "Range" then only those measurements
+with a source-detector separation
+<math xmlns="&mathml;"><mi>R</mi></math> where 
+<math xmlns="&mathml;">
+    <msub>
+	<mi>R</mi>
+	<mo>min</mo>
+    </msub>
+    <mo>&lt;</mo>
+    <mi>R</mi>
+    <mo>&le;</mo>
+    <msub>
+	<mi>R</mi>
+	<mo>min</mo>
+    </msub>
+</math>
+are passed back. 
+<math xmlns="&mathml;"><msub><mi>R</mi><mo>min</mo></msub></math> and
+<math xmlns="&mathml;"><msub><mi>R</mi><mo>max</mo></msub></math>
+are passed as <mat>var1</mat> and <mat>var2</mat> respectively.
+</p>
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="genMeasList.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+      MeasList = genMeasList(SD, Method[, var1, var2])
+    </td>
+</tr>
+<tr><th rowspan="3" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Method</td>
+    <td>How to generate measurement list</td>
+</tr>
+<tr>
+    <td class="varname">var1, var2</td>
+    <td>Some methods require additional parameters</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">MeasList</td>
+    <td>A <a href="pmi-measlist.xhtml">measurement list</a></td>
+</tr>
+</table>
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

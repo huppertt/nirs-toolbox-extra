@@ -1,26 +1,52 @@
-function viewOrigin(hAxes, mode)
+function viewOrigin(hAxes, origin, mode)
+
+if ~ishandles(hAxes)
+    return;
+end
 
 hOrigin = getappdata(hAxes, 'hOrigin');
 
 if ~exist('mode','var')
     mode = 'redraw';
 end
+if ~exist('origin','var') | isempty(origin)
+    origin = [0,0,0];
+end
 axes(hAxes); hold on
 hViewOrigin = getappdata(hAxes, 'hViewOrigin');
-onoff = get(hViewOrigin,'checked');
 
+type = get(hViewOrigin,'type');
+if strcmp(type, 'uicontrol')
+    val = get(hViewOrigin, 'value');
+    if val==1 onoff = 'on'; else onoff = 'off'; end
+elseif strcmp(type, 'uimenu')
+    onoff = get(hViewOrigin, 'checked');
+end
+
+c = origin;
 s = 64;
+Xa = [c(1)+s, c(2),   c(3);   c(1)-s, c(2),   c(3)];
+Ya = [c(1),   c(2)+s, c(3);   c(1),   c(2)-s, c(3)];
+Za = [c(1),   c(2),   c(3)+s; c(1),   c(2),   c(3)-s];
+
 if strcmp(mode,'redraw')
     if ishandles(hOrigin)
         delete(hOrigin);
     end
     
-    hxcoord = line([s,-s], [0,0], [0,0], 'color','m'); hold on
-    hycoord = line([0,0], [s,-s], [0,0], 'color',[.2,.6,.1]); hold on
-    hzcoord = line([0,0], [0,0], [s,-s], 'color',[.2,.1,.6]); hold on
-    hxt = text(s,0,0, 'x','fontweight','bold','color','m'); hold on
-    hyt = text(0,s,0, 'y','fontweight','bold','color',[.2,.6,.1]); hold on
-    hzt = text(0,0,s, 'z','fontweight','bold','color',[.2,.1,.6]); hold on
+    % Set axes colors
+    c = [ ...
+        .95, .00, .95; ...
+        .20, .80, .10; ...
+        .10, .80, .80 ...
+        ];    
+    
+    hxcoord = line([Xa(1,1), Xa(2,1)], [Xa(1,2), Xa(2,2)], [Xa(1,3), Xa(2,3)], 'color', c(1,:)); hold on
+    hycoord = line([Ya(1,1), Ya(2,1)], [Ya(1,2), Ya(2,2)], [Ya(1,3), Ya(2,3)], 'color', c(2,:)); hold on
+    hzcoord = line([Za(1,1), Za(2,1)], [Za(1,2), Za(2,2)], [Za(1,3), Za(2,3)], 'color', c(3,:)); hold on
+    hxt = text(s,0,0, 'x', 'fontweight','bold', 'color', c(1,:)); hold on
+    hyt = text(0,s,0, 'y', 'fontweight','bold', 'color', c(2,:)); hold on
+    hzt = text(0,0,s, 'z', 'fontweight','bold', 'color', c(3,:)); hold on
     hOrigin = [hxcoord, hycoord, hzcoord, hxt, hyt, hzt];
        
     axislimits = get(gca, {'xlim','ylim','zlim'});

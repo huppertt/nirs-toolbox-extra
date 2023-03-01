@@ -3,9 +3,9 @@ function varargout = process_inverse_2016( varargin )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -19,7 +19,7 @@ function varargout = process_inverse_2016( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2012-2016
+% Authors: Francois Tadel, 2012-2019
 
 eval(macro_method);
 end
@@ -33,13 +33,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Custom';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 326;
-    sProcess.Description = 'http://neuroimage.usc.edu/brainstorm/Tutorials/SourceEstimation';
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/SourceEstimation';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'data', 'raw'};
     sProcess.OutputTypes = {'results', 'results'};
     sProcess.nInputs     = 1;
     sProcess.nMinFiles   = 1;
-    sProcess.isSeparator = 1;
     % Option: Output
     sProcess.options.output.Comment = {'Kernel only: shared', 'Kernel only: one per file', 'Full results: one per file'};
     sProcess.options.output.Type    = 'radio';
@@ -256,6 +255,11 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
                 errMessage = 'Cannot compute shared kernels with this method.';
                 return
             end
+            % Install/load brainentropy plugin
+            [isInstalled, errMessage] = bst_plugin('Install', 'brainentropy', 1);
+            if ~isInstalled
+                return;
+            end
             % Default options
             MethodOptions = be_main();
             % Interface to edit options
@@ -346,12 +350,13 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
             DataFile = sStudy.Data(iDatas(iEntry)).FileName;
             % Load data file info (only 'mem' requires the recordings to be loaded here)
             if strcmpi(OPTIONS.InverseMethod, 'mem')
-                DataMat = in_bst_data(DataFile, 'ChannelFlag', 'Time', 'nAvg', 'F');
+                DataMat = in_bst_data(DataFile, 'ChannelFlag', 'Time', 'nAvg', 'Leff', 'F');
             else
-                DataMat = in_bst_data(DataFile, 'ChannelFlag', 'Time', 'nAvg');
+                DataMat = in_bst_data(DataFile, 'ChannelFlag', 'Time', 'nAvg', 'Leff');
             end
             ChannelFlag = DataMat.ChannelFlag;
             nAvg        = DataMat.nAvg;
+            Leff        = DataMat.Leff;
             Time        = DataMat.Time;
             % Is it a Raw file?
             isRaw = strcmpi(sStudy.Data(iDatas(iEntry)).DataType, 'raw');
@@ -361,6 +366,7 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
             [iRelatedStudies, iRelatedData] = bst_get('DataForStudy', iStudy);
             % List all the data files
             nAvgAll     = zeros(1,length(iRelatedStudies));
+            LeffAll     = zeros(1,length(iRelatedStudies));
             BadChannels = [];
             nChannels   = [];
             for i = 1:length(iRelatedStudies)
@@ -368,11 +374,16 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
                 sStudyRel = bst_get('Study', iRelatedStudies(i));
                 DataFull = file_fullpath(sStudyRel.Data(iRelatedData(i)).FileName);
                 % Read bad channels and nAvg
-                DataMat = load(DataFull, 'ChannelFlag', 'nAvg');
+                DataMat = load(DataFull, 'ChannelFlag', 'nAvg', 'Leff');
                 if isfield(DataMat, 'nAvg') && ~isempty(DataMat.nAvg)
                     nAvgAll(i) = DataMat.nAvg;
                 else
                     nAvgAll(i) = 1;
+                end
+                if isfield(DataMat, 'Leff') && ~isempty(DataMat.Leff)
+                    LeffAll(i) = DataMat.Leff;
+                else
+                    LeffAll(i) = 1;
                 end
                 % Count number of times the channe is bad
                 if isempty(BadChannels)
@@ -413,6 +424,7 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
             %     isFirstWarnAvg = 0;
             % end
             nAvg = min([nAvgAll 1]);
+            Leff = min([LeffAll 1]);
             
             % === BAD CHANNELS ===
             if any(BadChannels)
@@ -541,7 +553,7 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
         % Apply average reference: separately SEEG, ECOG, EEG
         if any(ismember(unique({ChannelMat.Channel.Type}), {'EEG','ECOG','SEEG'}))
             % Create average reference montage
-            sMontage = panel_montage('GetMontageAvgRef', ChannelMat.Channel(GoodChannel), ChannelFlag(GoodChannel), 0);
+            sMontage = panel_montage('GetMontageAvgRef', [], ChannelMat.Channel(GoodChannel), ChannelFlag(GoodChannel), 0);
             HeadModel.Gain = sMontage.Matrix * HeadModel.Gain;
             % Apply average reference operator on both sides of the noise covariance matrix
             NoiseCovMat.NoiseCov(GoodChannel, GoodChannel) = sMontage.Matrix * NoiseCovMat.NoiseCov(GoodChannel, GoodChannel) * sMontage.Matrix';
@@ -634,7 +646,18 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
                 % NOTE: The output HeadModel param is used here in return to save LOTS of memory in the bst_inverse_linear_2016 function,
                 %       event if it seems to be absolutely useless. Having a parameter in both input and output have the
                 %       effect in Matlab of passing them "by reference".
-                [Results, OPTIONS] = bst_inverse_linear_2016(HeadModel, OPTIONS);
+                try
+                    [Results, OPTIONS] = bst_inverse_linear_2016(HeadModel, OPTIONS);
+                catch e
+                    if bst_get('MatlabVersion') == 904
+                        errMsg = ['Note: Matlab 2018a changed the behavior of the SVD() function. ' ...
+                            10 'If issues arise, we recommend using another version.'];
+                        e = MException(e.identifier, [e.message 10 10 errMsg]);
+                        throw(e);
+                    else
+                        rethrow(e);
+                    end
+                end
             case 'mem'
                 % Add options needed by the MEM functions
                 OPTIONS.DataFile      = DataFile;
@@ -669,6 +692,11 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
         if (OPTIONS.ComputeKernel == 0) && ~isempty(ResultsMat.ImagingKernel) && ~isempty(DataFile)
             % Load data
             DataMat = in_bst_data(DataFile, 'F');
+            % Incompatible options: Full results + raw files (impossible to view after)
+            if isstruct(DataMat.F)
+                errMessage = [errMessage 'Cannot compute full results for raw files: import the files first or compute an inversion kernel only.' 10];
+                break;
+            end
             % Multiply inversion kernel with the recordings
             ResultsMat.ImageGridAmp = ResultsMat.ImagingKernel * DataMat.F(GoodChannel, :);
             ResultsMat.ImagingKernel = [];
@@ -731,9 +759,14 @@ function [OutputFiles, errMessage] = Compute(iStudies, iDatas, OPTIONS)
         end
         ResultsMat.GridAtlas = HeadModelInit.GridAtlas;
         ResultsMat.nAvg      = nAvg;
+        ResultsMat.Leff      = Leff;
         ResultsMat.Options   = OPTIONS;
         % History
         ResultsMat = bst_history('add', ResultsMat, 'compute', ['Source estimation: ' OPTIONS.InverseMethod]);
+        % Make file comment unique
+        if ~isempty(sStudy.Result)
+            ResultsMat.Comment = file_unique(ResultsMat.Comment, {sStudy.Result.Comment});
+        end
         % Save new file structure
         bst_save(ResultFile, ResultsMat, 'v6');
 

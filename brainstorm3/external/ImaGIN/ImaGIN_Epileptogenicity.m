@@ -14,11 +14,11 @@ function ImaGIN_Epileptogenicity(S)
 % FOR RESEARCH PURPOSES ONLY. THE SOFTWARE IS PROVIDED "AS IS," AND THE AUTHORS
 % DO NOT ASSUME ANY LIABILITY OR RESPONSIBILITY FOR ITS USE IN ANY CONTEXT.
 %
-% Copyright (c) 2000-2017 Inserm U1216
+% Copyright (c) 2000-2018 Inserm U1216
 % =============================================================================-
 %
 % Authors: Olivier David
-%          Francois Tadel, 2017
+%          Francois Tadel, 2017-2020
 
 
 %% ===== INPUTS =====
@@ -197,9 +197,9 @@ for i00 = 1:size(latency, 2)
     % ===== PROCESS EACH FILE SEPARATELY =====
     for i0 = 1:size(DD,1)
         if (length(Horizon) == 1)
-            TimeWindow = 0 : TimeResolution : Horizon+1+max(latency(:));
+            TimeWindow = min(latency(:)) : TimeResolution : Horizon+1+max(latency(:));
         elseif (length(Horizon) > 1)
-            TimeWindow = 0 : TimeResolution : Horizon(i0)+1+max(latency(:));
+            TimeWindow = min(latency(:)) : TimeResolution : Horizon(i0)+1+max(latency(:));
         end
         
         % Load seizure
@@ -209,7 +209,7 @@ for i00 = 1:size(latency, 2)
         % Load baseline
         B = spm_eeg_load(deblank(BB(i0,:)));
         timebaseline = time(B);
-        TimeWindowBaseline = timebaseline(1) : (TimeWindow(2)-TimeWindow(1)) : (timebaseline(end)-1);
+        TimeWindowBaseline = timebaseline(1) : TimeResolution : (timebaseline(end)-1);
         
         % Compute power using multitaper
         try
@@ -590,13 +590,19 @@ function WriteTvalues(RecFile, TvalueFile, OutputFile, OutputType, giiCortex, Sa
     catch
         PosElec = Dsensors.pnt';
     end
+    BadChannels = badchannels(D);
     % Average the T values in a neighborhood of 10 mm around each contact (SizeHorizon when creating images)
     EIGamma = zeros(size(PosElec,2),1);
     for i1 = 1:size(PosElec,2)
-        dist = (P(:,1)-PosElec(1,i1)).^2+(P(:,2)-PosElec(2,i1)).^2+(P(:,3)-PosElec(3,i1)).^2;
-        tmp1 = Tvalues((dist < 100) & (Tvalues(:) ~= 0));
-        if ~isempty(tmp1)
-            EIGamma(i1) = mean(tmp1);
+        % Bad channels: force the value to be NaN
+        if ~isempty(BadChannels) && ismember(i1, BadChannels)
+            EIGamma(i1) = NaN;
+        else
+            dist = (P(:,1)-PosElec(1,i1)).^2+(P(:,2)-PosElec(2,i1)).^2+(P(:,3)-PosElec(3,i1)).^2;
+            tmp1 = Tvalues((dist < 100) & (Tvalues(:) ~= 0));
+            if ~isempty(tmp1)
+                EIGamma(i1) = mean(tmp1);
+            end
         end
     end
     % Save T values as a .mat/.dat file

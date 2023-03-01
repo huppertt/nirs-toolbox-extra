@@ -1,7 +1,7 @@
 % dod = hmrFlowInput( d )
 %
 % UI NAME
-% Intensity_Normalized
+% Relative Flow Change
 %
 %
 % INPUT
@@ -12,13 +12,18 @@
 
 function dod = hmrFlowInput( d )
 
-% flow (fisrt half)
-dod = d;
-dod(:,1:size(d,2)/2) = dod(:,1:size(d,2)/2) * 1e8;
+for i = 1:size(d,2);
+lst = find(isnan(d(:,i)));
+d(lst,i) = nanmean(d(:,i));
+clear lst
+end
 
-% convert intensity to optical density (second half)
+% percent change
 dm = mean(abs(d),1);
 nTpts = size(d,1);
-for i = size(d,2)/2+1:size(d,2)
-dod(:,i) = -log(abs(d(:,i))./(ones(nTpts,1)*dm(i)));
+dod = (abs(d)./(ones(nTpts,1)*dm));
+
+if ~isempty(find(d(:)<=0))
+    warning( 'WARNING: Some data points in d are zero or negative.' );
 end
+

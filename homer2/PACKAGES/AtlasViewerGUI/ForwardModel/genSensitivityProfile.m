@@ -28,6 +28,7 @@ if isempty(probe.optpos_reg)
     return;
 end
 if isempty(probe.ml)
+    menu('Error: Cannot generate sensitivity, because the measurement list is missing','OK');
     return;
 end
 

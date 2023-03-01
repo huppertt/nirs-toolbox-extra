@@ -1,10 +1,7 @@
-function OutputFiles = import_raw(RawFiles, FileFormat, iSubject, ImportOptions)
+function OutputFiles = import_raw(RawFiles, FileFormat, iSubject, ImportOptions, DateOfStudy)
 % IMPORT_RAW: Create a link to a raw file in the Brainstorm database.
 %
-% USAGE:  OutputFiles = import_raw(RawFiles, FileFormat, iSubject, ImportOptions)
-%         OutputFiles = import_raw(RawFiles, FileFormat, iSubject)
-%         OutputFiles = import_raw(RawFiles, FileFormat)
-%         OutputFiles = import_raw()
+% USAGE:  OutputFiles = import_raw(RawFiles=[ask], FileFormat=[ask], iSubject=[], ImportOptions=[], DateOfStudy=[])
 %
 % INPUTS:
 %     - RawFiles      : Full path to the file to import in database
@@ -12,12 +9,13 @@ function OutputFiles = import_raw(RawFiles, FileFormat, iSubject, ImportOptions)
 %     - iSubject      : Subject indice in which to import the raw file
 %     - ImportOptions : Structure that describes how to import the recordings
 %       => Fields used: ChannelAlign, ChannelReplace, DisplayMessages, EventsMode, EventsTrackMode
+%     - DateOfStudy   : String 'dd-MMM-yyyy', force Study entries created in the database to use this acquisition date
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -31,9 +29,12 @@ function OutputFiles = import_raw(RawFiles, FileFormat, iSubject, ImportOptions)
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 % 
-% Authors: Francois Tadel, 2009-2017
+% Authors: Francois Tadel, 2009-2019
 
 %% ===== PARSE INPUT =====
+if (nargin < 5) || isempty(DateOfStudy)
+    DateOfStudy = [];
+end
 if (nargin < 4) || isempty(ImportOptions)
     ImportOptions = db_template('ImportOptions');
 end
@@ -122,10 +123,14 @@ for iFile = 1:length(RawFiles)
     % ===== OPENING FILE =====
     bst_progress('start', 'Open raw EEG/MEG recordings', 'Reading file header...');
     % Open file
-    [sFile, ChannelMat, errMsg, DataMat] = in_fopen(RawFiles{iFile}, FileFormat, ImportOptions);
+    [sFile, ChannelMat, errMsg, DataMat, ImportOptions] = in_fopen(RawFiles{iFile}, FileFormat, ImportOptions);
     if isempty(sFile)
         bst_progress('stop');
         return;
+    end
+    % Files not read correctly
+    if ~isfield(sFile, 'prop') || ~isfield(sFile.prop, 'sfreq') || isempty(sFile.prop.sfreq) || (sFile.prop.sfreq == 0)
+        error('Could not open file (see errors in command window).');
     end
     % Review imported files works only for single files (not for multiple trials)
     if (length(DataMat) > 1)
@@ -135,10 +140,14 @@ for iFile = 1:length(RawFiles)
     if ~isempty(errMsg) && ImportOptions.DisplayMessages
         java_dialog('warning', errMsg, 'Open raw EEG/MEG recordings');
     end
+    % Multiple FIF linked
+    if ImportOptions.DisplayMessages && strcmpi(FileFormat, 'FIF') && isfield(sFile, 'header') && isfield(sFile.header, 'fif_list') && (length(sFile.header.fif_list) >= 2)
+        java_dialog('msgbox', ['Multiple files were linked together:' 10 sprintf('- %s\n', sFile.header.fif_list{:}), 10], 'Open split FIF files');
+    end
 
     % ===== OUTPUT STUDY =====
     % Get short filename
-    [tmp, fBase] = bst_fileparts(RawFiles{iFile});
+    [fPath, fBase] = bst_fileparts(RawFiles{iFile});
     % Remove "data_" tag when importing Brainstorm files as raw continuous files
     if strcmpi(FileFormat, 'BST-DATA') && (length(fBase) > 5) && strcmp(fBase(1:5), 'data_')
         fBase = fBase(6:end);
@@ -167,7 +176,7 @@ for iFile = 1:length(RawFiles)
         sSubject = bst_get('Subject', iSubject, 1);
     end
     % Do not allow automatic registration with head points when using the default anatomy
-    if (sSubject.UseDefaultAnat)
+    if (sSubject.UseDefaultAnat) || isempty(sSubject.Anatomy) || any(~cellfun(@(c)isempty(strfind(lower(sSubject.Anatomy(sSubject.iAnatomy).Comment), c)), {'icbm152', 'colin27', 'bci-dni', 'uscbrain', 'fsaverage', 'oreilly', 'kabdebon'}))
         ImportOptions.ChannelAlign = 0;
     end
 
@@ -199,8 +208,16 @@ for iFile = 1:length(RawFiles)
             end
         end
     end
+    % Creation date: use input value, or try to get it from the sFile structure
+    if ~isempty(DateOfStudy)
+        studyDate = DateOfStudy;
+    elseif isfield(sFile, 'acq_date') && ~isempty(sFile.acq_date)
+        studyDate = sFile.acq_date;
+    else
+        studyDate = [];
+    end
     % Create output condition
-    iOutputStudy = db_add_condition(sSubject.Name, ConditionName);
+    iOutputStudy = db_add_condition(sSubject.Name, ConditionName, [], studyDate);
     if isempty(iOutputStudy)
         error('Folder could not be created : "%s/%s".', bst_fileparts(sSubject.FileName), ConditionName);
     end
@@ -237,7 +254,7 @@ for iFile = 1:length(RawFiles)
         % Remove fiducials only from polhemus and ascii files
         isRemoveFid = ismember(FileFormat, {'MEGDRAW', 'POLHEMUS', 'ASCII_XYZ', 'ASCII_NXYZ', 'ASCII_XYZN', 'ASCII_XYZ_MNI', 'ASCII_NXYZ_MNI', 'ASCII_XYZN_MNI', 'ASCII_NXY', 'ASCII_XY', 'ASCII_NTP', 'ASCII_TP'});
         % Perform the NAS/LPA/RPA registration for some specific file formats
-        isAlign = ismember(FileFormat, {'NIRS-BRS'});
+        isAlign = ismember(FileFormat, {'NIRS-BRS','NIRS-SNIRF'});
         % Detect auxiliary EEG channels
         ChannelMat = channel_detect_type(ChannelMat, isAlign, isRemoveFid);
         % Do not align data coming from Brainstorm exported files (already aligned)
@@ -304,6 +321,16 @@ for iFile = 1:length(RawFiles)
     % Refresh both data node and channel node
     iUpdateStudies = unique([iOutputStudy, iChannelStudy]);
     panel_protocols('UpdateNode', 'Study', iUpdateStudies);
+    
+    % ===== ADD SYNCHRONIZED VIDEOS =====
+    % Look for video files with the same name, add them to the raw folder if found
+    for fExt = {'.avi','.AVI','.mpg','.MPG','.mpeg','.MPEG','.mp4','.MP4','.mp2','.MP2','.mkv','.MKV','.wmv','.WMV','.divx','.DIVX','.mov','.MOV'}
+        VideoFile = bst_fullfile(fPath, [fBase, fExt{1}]);
+        if file_exist(VideoFile)
+            import_video(iOutputStudy, VideoFile);
+            break;
+        end
+    end
 end
 
 % If something was imported
@@ -319,9 +346,9 @@ if isSSP
     strWarning = ['The files you imported include SSP/ICA projectors.' 10 10 ...
                   'Review them before processing the files:' 10 ...
                   'tab Record > menu Artifacts > Select active projectors.'];
-    % Non-iteractive: Display message in command window
+    % Non-interactive: Display message in command window
     if ~ImportOptions.DisplayMessages 
-        disp(['BST> ' strrep(strWarning, 10, [10, 'BST> '])]);
+        disp(['BST> ' strrep(strWarning, char(10), [10, 'BST> '])]);
     % Interactive, one file: Open the SSP selection window
     elseif (length(OutputFiles) == 1)
         java_dialog('msgbox', strWarning);

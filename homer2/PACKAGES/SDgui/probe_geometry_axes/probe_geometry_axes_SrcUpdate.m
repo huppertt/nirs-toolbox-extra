@@ -41,9 +41,7 @@ function probe_geometry_axes_SrcUpdate(handles,spos,i,event)
         % associated with this optode
         if(~isempty(ml))
             j=find(ml(:,1)==i);
-            for ii=1:length(j)
-                delete(h_edges(j(ii)));
-            end
+            delete(h_edges(j));
             if(~isempty(j)>0)
                 h_edges(j)=[];
                 ml(j,:)=[];

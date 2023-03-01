@@ -1,17 +1,10 @@
-function savePialsurf(pialsurf, dirname, T_vol2mc, mode)
+function savePialsurf(pialsurf, T_vol2mc, mode)
 
 if isempty(pialsurf) | isempty(pialsurf.mesh.vertices)
     return;
 end
 
-if ~exist('dirname','var')  | isempty(dirname)
-    dirname = [pialsurf.pathname, '/anatomical/'];
-else
-    if dirname(end)~='/' && dirname(end)~='\'
-        dirname(end+1)='/';
-    end
-    dirname = [dirname, '/anatomical/'];    
-end
+dirname = [pialsurf.pathname, '/anatomical/'];
 if ~exist(dirname, 'dir')
     mkdir(dirname);
 end

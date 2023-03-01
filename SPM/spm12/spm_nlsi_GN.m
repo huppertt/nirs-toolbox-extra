@@ -299,7 +299,7 @@ Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 % EM
 %==========================================================================
 criterion = [0 0 0 0];
-
+C.p=p;
 C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);

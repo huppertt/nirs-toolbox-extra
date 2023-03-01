@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/css" href="pmi.css"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" 
+		  "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd"
+		[ <!ENTITY mathml "http://www.w3.org/1998/Math/MathML"> ]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>PMI--2D Data Visualization</title>
+  <meta name="Generator" content="/usr/bin/emacs" />
+  <link rel="Contents"  href="pmi-toc.xhtml" />
+  <link rel="Copyright" href="pmi-gpl.xhtml" />
+  <link rel="Index"     href="sorted-index.xhtml" />
+  <link rel="Start"     href="index.xhtml" />
+  <!-- These three are for the benefit of HTML-only browsers -->
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="Content-Type" content="text/xml; charset=iso-8859-1" />
+  <link rel="stylesheet" type="text/css"  href="pmi.css" />
+</head>
+<!-- ====================================================================
+     PMI Toolbox Documentation
+     Copyright (C) 2004  Jonathan Stott
+     
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place - Suite 330, 
+     Boston, MA  02111-1307, USA.
+ ==================================================================== -->
+<body>
+<h1 id="Title">Two-dimensional Data Visualization</h1>
+
+<p id="Description">There are two standard toolbox functions for
+plotting two-dimensional data.  <mat>plotData()</mat> displays
+measurements while preserving geometrical relationship.  This is done
+by creating a subplot for each source and plotting every detector at
+its correct
+<math xmlns="&mathml;" display="inline">
+<mfenced><mi>x</mi><mi>y</mi></mfenced></math> location (or vice
+versa), using color to indicate measurement amplitude.
+</p>
+
+<p><mat>showImage()</mat>, on the other hand, is for plotting
+reconstructed images.  For each constant
+<math xmlns="&mathml;" display="inline"><mi>Z</mi></math> slice
+through the volume, a subplot is generated.  The same color scale is
+used for all plots.  If both <mat>Mua</mat> and <mat>Musp</mat> are
+given, then the data are placed on the same graph.</p>
+
+
+<h2 id="Summary">Function Summary</h2>
+
+<table class="syntaxTable" title="plotData.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+    h = plotData(SD, Medium, data[, srcFlag [, colormap]]);
+    </td>
+</tr>
+<tr><th rowspan="5" class="syntaxHead">Inputs:</th>
+    <td class="varname">SD</td>
+    <td><mat><a href="pmi-sd.xhtml">SD structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">MeasList</td>
+    <td><mat><a href="pmi-measlist.xhtml">Measurement List</a></mat>
+	that corresponds to experimental data</td>
+</tr>
+<tr>
+    <td class="varname">data</td>
+    <td>Data to be plotted, usually experimental data</td>
+</tr>
+<tr>
+    <td class="varname">srcFlag</td>
+    <td>Flag: if non-zero, plot by source, otherwise plot by detector. 
+       Optional, defaults to 0.</td>
+</tr>
+<tr>
+    <td class="varname">colormap</td>
+    <td>Colormap to be used for plotting data.  Optional, defaults
+       to <mat><a href="cm256.xhtml">cm256</a></mat></td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">h</td>
+    <td>Handle to the new figure</td>
+</tr>
+</table>
+
+<table class="syntaxTable" title="showImage.m">
+<tr><th class="syntaxHead">Syntax:</th>
+    <td class="matfunc" colspan="2">
+    h = showImage(Medium, Mu[, Musp]);
+    </td>
+</tr>
+<tr><th rowspan="3" class="syntaxHead">Inputs:</th>
+    <td class="varname">Medium</td>
+    <td><mat><a href="pmi-medium.xhtml">Medium structure</a></mat></td>
+</tr>
+<tr>
+    <td class="varname">Mu</td>
+    <td>Reconstructed data to be plotted (can be <mat>Mua</mat> 
+     or <mat>Musp</mat>)</td>
+</tr>
+<tr>
+    <td class="varname">Musp</td>
+    <td>If the reconstructed <mat>Mua</mat> and <mat>Musp</mat> should 
+    appear on the same plot, pass <mat>Mua</mat> as the first argument
+    and <mat>Musp</mat> as the second.  Optional.</td>
+</tr>
+<tr><th rowspan="1" class="syntaxHead">Outputs:</th>
+    <td class="varname">h</td>
+    <td>Handle to the new figure</td>
+</tr>
+</table>
+
+<!-- <h2 id="Details">Detailed Descriptions</h2> -->
+
+<div class="Footer">
+  <hr />
+  <div class="linkblk" style="text-align: left">
+    <a href="index.html">First Page</a>
+  </div>
+  <div class="linkblk" style="text-align: center">
+    <a href="pmi-toc.xhtml">Table of Contents</a>
+  </div>
+  <div class="linkblk" style="text-align: right">
+    <a href="pmi-gpl.xhtml">Copyright</a>
+  </div>
+</div>
+
+</body>
+</html>
+

@@ -14,9 +14,9 @@ function hFig = view_mri_slices(varargin)
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -41,7 +41,7 @@ if ((nargin == 3) || (nargin == 4))
         % Load MRI .MAT file
         mriMat = in_mri_bst(mriFileName);
         % Get some of the MRI fields 
-        mriCube = mriMat.Cube;
+        mriCube = mriMat.Cube(:,:,:,1);
     % Call: viewMriSlices(mriCube, orientation, nbSlices)
     elseif (ndims(varargin{1}) == 3)
         mriCube = varargin{1};

@@ -44,11 +44,11 @@ viewOrigin(hAxes);
 pc = digpts.pcpos;
 rp = digpts.refpts.pos;
 if ~isempty(pc)
-    pts = prepPtsStructForViewing(pc,size(pc,1),'numbers','g');
+    pts = prepPtsStructForViewing(pc, size(pc,1), 'probenum', 'g');
     digpts.handles.hPcpos = viewPts(pts, [], 0, axes_order);
 end
 if ~isempty(rp)
-    pts = prepPtsStructForViewing(rp,size(rp,1),'labels',[1.00,1.00,0.00],11,digpts.refpts.labels);
+    pts = prepPtsStructForViewing(rp,size(rp,1), 'refptslabels', [0.25,0.50,0.00], 11, digpts.refpts.labels);
     digpts.handles.hRefpts = viewPts(pts, [], 0, axes_order);
 end
 digpts.handles.hOptodes = [digpts.handles.hSrcpos; digpts.handles.hDetpos];

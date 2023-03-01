@@ -9,9 +9,9 @@ function tess_align_manual( RefFile, SurfaceFile )
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
-% http://neuroimage.usc.edu/brainstorm
+% https://neuroimage.usc.edu/brainstorm
 % 
-% Copyright (c)2000-2017 University of Southern California & McGill University
+% Copyright (c)2000-2020 University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
@@ -154,11 +154,11 @@ function AlignButtonMotion_Callback(hObject, ev)
         % Selected button
         switch (gTessAlign.selectedButton)
             case gTessAlign.hButtonTransX
-                Tnew = [motionFigure(2) / 5, 0, 0];
+                Tnew = [motionFigure(2) / 25, 0, 0];
             case gTessAlign.hButtonTransY
-                Tnew = [0, motionFigure(2) / 5, 0];
+                Tnew = [0, motionFigure(2) / 25, 0];
             case gTessAlign.hButtonTransZ
-                Tnew = [0, 0, motionFigure(2) / 5];
+                Tnew = [0, 0, motionFigure(2) / 25];
             case gTessAlign.hButtonRotX
                 a = motionFigure(2);
                 Rnew = [1,      0,       0; 
